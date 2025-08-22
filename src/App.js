@@ -173,10 +173,10 @@ export default function App() {
       console.log('Sending email with params:', emailParams); // Debug log
 
       await emailjs.send(
-        'service_10nh9d1', // Replace with your EmailJS service ID
-        'template_o9c7ylo', // Replace with your EmailJS template ID
+        process.env.REACT_APP_EMAILJS_SERVICE_ID,
+        process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
         emailParams,
-        '_AOiVGtSypFNl4sfa' // Replace with your EmailJS public key
+        process.env.REACT_APP_EMAILJS_PUBLIC_KEY // Replace with your EmailJS public key
       );
 
       setMessage(`✅ Booking confirmed! Confirmation email sent to ${email}. Total: ₹${totalPrice}`);
