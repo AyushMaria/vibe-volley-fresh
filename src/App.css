@@ -1,38 +1,500 @@
 .App {
+  min-height: 100vh;
+  background-image: url('https://images.unsplash.com/photo-1686721134997-a43d7de8de1a?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  padding: 20px;
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  position: relative;
+}
+
+.booking-container {
+  display: flex;
+  max-width: 1200px;
+  margin: 175px auto;
+  background: rgba(255, 255, 255, 0.95); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glass effect */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  min-height: 600px;
+}
+
+
+/* Left Panel - Make it transparent to show background */
+/* Left Panel - Updated to match reference */
+.left-panel {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.85); /* Dark background like reference */
+  backdrop-filter: blur(5px);
+  color: white;
+  padding: 60px 40px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.left-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 0;
+  border: 2px dashed rgba(255, 255, 255, 0.3); /* Dashed border like reference */
+  margin: 20px;
+  border-radius: 10px;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+}
+
+.main-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  line-height: 1.2;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: white;
+  letter-spacing: 2px;
+}
+
+/* Timing Section */
+.timing-section {
+  margin-bottom: 10px;
+}
+
+.day-group {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.day-group:last-child {
+  border-bottom: none;
+}
+
+.day-title {
+  color: #4CAF50; /* Green color like reference */
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.time-info {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.time-slot-info {
+  color: white;
+  font-size: 1rem;
+  margin: 8px 0;
+  padding-left: 20px;
+  position: relative;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+
+/* Pricing Section */
+.pricing-section {
+  margin-bottom: 50px;
+  padding: 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pricing-title {
+  color: #4CAF50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.price-info {
+  text-align: center;
+}
+
+.price-item {
+  color: white;
+  font-size: 1rem;
+  margin-top: 8px;
+  margin-bottom: 30px;
+  padding-left: 20px;
+  position: relative;
+}
+
+
+
+/* Contact Section */
+.contact-section {
+  margin-top: 30px;
+}
+
+.contact-info {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  padding: 15px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+/* Responsive updates for left panel */
+@media (max-width: 768px) {
+  .left-panel {
+    padding: 40px 30px;
+    min-height: 400px;
+  }
+  
+  .main-title {
+    font-size: 2rem;
+  }
+  
+  .day-title,
+  .pricing-title {
+    font-size: 1.1rem;
+  }
+  
+  .time-slot-info,
+  .price-item {
+    font-size: 0.9rem;
+  }
+  
+  .contact-info {
+    font-size: 1rem;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 1.8rem;
+  }
+  
+  .left-panel::before {
+    margin: 10px;
+  }
+}
+
+/* Right Panel */
+.right-panel {
+  flex: 1;
+  padding: 40px;
+  background: #fafafa;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-image {
+  max-width: 250px;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  margin: 0 auto 10px;
+  display: block;
+  object-fit: contain;
+}
+
+/* Responsive logo sizing */
+@media (max-width: 768px) {
+  .logo-image {
+    max-width: 150px;
+    max-height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image {
+    max-width: 120px;
+    max-height: 50px;
+  }
+}
+
+.form-title {
+  font-size: 3rem;
+  color: #18c566;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.form-subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.booking-form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-label {
+  display: block;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #18c566;
+  box-shadow: 0 0 0 3px rgba(24, 102, 197, 0.1);
+}
+
+.form-input:disabled {
+  background-color: #f5f5f5;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.date-input {
+  color-scheme: light;
+}
+
+.time-blocks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.time-block-btn {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: white;
+  color: #555;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+}
+
+.time-block-btn:hover:not(.disabled) {
+  border-color: #18c566;
+  background: #f0f7ff;
+}
+
+.time-block-btn.active {
+  background: #18c566;
+  border-color: #18c566;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.time-block-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.refresh-btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: #18c566;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: #18c566;
+}
+
+.loading-text {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.time-slot {
+  padding: 12px 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: #18c566;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.time-slot:hover:not(.booked):not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.time-slot.selected {
+  background: #1454a3;
+  border-color: #1454a3;
+}
+
+.time-slot.booked {
+  background: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.price-summary {
+  padding: 20px;
+  background: linear-gradient(135deg, #e8f5e8, #d4f1d4);
+  border-radius: 10px;
+  text-align: center;
+  color: #2d5a2d;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 20px 0;
+  border: 2px solid #b8e6b8;
+}
+
+.message {
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  margin: 15px 0;
+}
+
+.message.success {
+  background: #e6ffe6;
+  color: #4f8a10;
+  border: 2px solid #b3ffb3;
+}
+
+.message.error {
+  background: #ffe6e6;
+  color: #d8000c;
+  border: 2px solid #ffb3b3;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 18px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #18c566, #1454a3);
+  border: none;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.submit-btn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(24, 102, 197, 0.3);
+}
+
+.submit-btn.disabled {
+  background: #000000;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  .booking-container {
+    flex-direction: column;
+    max-width: 100%;
+  }
+  
+  .left-panel {
+    padding: 40px 30px;
+    min-height: 300px;
+  }
+  
+  .main-title {
+    font-size: 2.5rem;
+  }
+  
+  .right-panel {
+    padding: 30px 20px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .time-blocks {
+    grid-template-columns: 1fr;
+  }
+  
+  .time-slots {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-title {
+    font-size: 2rem;
+  }
+  
+  .brand-description {
+    font-size: 1rem;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
   }
 }
