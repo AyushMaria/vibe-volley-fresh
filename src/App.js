@@ -220,6 +220,15 @@ export default function App() {
         {/* Left Side - Branding */}
         <div className="left-panel">
           <div className="brand-content">
+            <div className="logo-section">
+              <img 
+                src="/logo.jpg" 
+                alt="Vibe & Volley Logo" 
+                className="left-logo-image"
+              />
+              <p className="left-form-subtitle">by Tiny Tots Kindergarten</p>
+            </div>
+
             <h1 className="main-title">TIMINGS</h1>
             
             <div className="timing-section">
@@ -256,13 +265,14 @@ export default function App() {
         {/* Right Side - Booking Form */}
         <div className="right-panel">
           <div className="form-header">
+            <p className="form-subtitle">powered by</p>
             <img 
-              src="/logo.jpg" 
+              src="/FE_logo.png" 
               alt="Vibe & Volley Logo" 
               className="logo-image"
             />
             {/*<h2 className="form-title">Vibe & Volley</h2>*/}
-            <p className="form-subtitle">by Tiny Tots Kindergarten</p>
+            
           </div>
 
           <form onSubmit={handleBookSlot} className="booking-form">
