@@ -15,10 +15,10 @@ const TIME_SLOTS = {
     "10:30 AM - 11:00 AM",
   ],
   afternoon: [
-    "2:00 PM - 2:30 PM",
+    /*"2:00 PM - 2:30 PM",
     "2:30 PM - 3:00 PM",
     "3:00 PM - 3:30 PM",
-    "3:30 PM - 4:00 PM",
+    "3:30 PM - 4:00 PM",*/
     "4:00 PM - 4:30 PM",
     "4:30 PM - 4:00 PM",
   ],
@@ -250,7 +250,7 @@ export default function App() {
                 <h3 className="day-title">Monday - Friday</h3>
                 <div className="time-info">
                   <p className="time-slot-info">7am - 11am</p>
-                  <p className="time-slot-info">3pm - 11pm</p>
+                  <p className="time-slot-info">4pm - 11pm</p>
                 </div>
               </div>
               
@@ -258,7 +258,7 @@ export default function App() {
                 <h3 className="day-title">Saturday and Sunday</h3>
                 <div className="time-info">
                   <p className="time-slot-info">7am - 11am</p>
-                  <p className="time-slot-info">2pm - 11pm</p>
+                  <p className="time-slot-info">4pm - 11pm</p>
                 </div>
               </div>
             </div>
