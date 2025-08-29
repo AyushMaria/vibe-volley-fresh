@@ -6,23 +6,37 @@ import emailjs from '@emailjs/browser';
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
   morning: [
-    "7:00 AM - 8:00 AM",
-    "8:00 AM - 9:00 AM", 
-    "9:00 AM - 10:00 AM",
-    "10:00 AM - 11:00 AM",
-    "11:00 AM - 12:00 PM",
+    "7:00 AM - 7:30 AM",
+    "8:00 AM - 8:30 AM",
+    "8:30 AM - 9:00 AM",
+    "9:00 AM - 9:30 AM", 
+    "9:30 AM - 10:00 AM",
+    "10:00 AM - 10:30 AM",
+    "10:30 AM - 11:00 AM",
   ],
-  afternoon: ["2:00 PM - 3:00 PM", "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM"],
+  afternoon: [
+    "2:00 PM - 2:30 PM",
+    "2:30 PM - 3:00 PM",
+    "3:00 PM - 3:30 PM",
+    "3:30 PM - 4:00 PM",
+    "4:00 PM - 4:30 PM",
+    "4:30 PM - 4:00 PM",
+  ],
   evening: [
-    "5:00 PM - 6:00 PM",
-    "6:00 PM - 7:00 PM",
-    "7:00 PM - 8:00 PM", 
-    "8:00 PM - 9:00 PM",
-    "9:00 PM - 10:00 PM",
-    "10:00 PM - 11:00 PM",
+    "5:00 PM - 5:30 PM",
+    "5:30 PM - 6:00 PM",
+    "6:00 PM - 6:30 PM",
+    "6:30 PM - 7:00 PM",
+    "7:00 PM - 7:30 PM",
+    "7:30 PM - 8:00 PM",
+    "8:00 PM - 8:30 PM", 
+    "8:30 PM - 9:00 PM",
+    "9:00 PM - 9:30 PM",
+    "9:30 PM - 10:00 PM",
+    "10:00 PM - 10:30 PM",
+    "10:30 PM - 11:00 PM",
   ],
 };
-
 export default function App() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -131,7 +145,7 @@ export default function App() {
   };
 
   const isBookButtonDisabled = selectedSlots.length === 0;
-  const totalPrice = selectedSlots.length * 500;
+  const totalPrice = selectedSlots.length * 250;
 
   const handleBookSlot = async (e) => {
     e.preventDefault();
