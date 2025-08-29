@@ -271,7 +271,7 @@ export default function App() {
             </div>
             
             <div className="contact-section">
-              <p className="contact-info">Call Us: +91 9156156570</p>
+              <p className="contact-info">Contact us for off time bookings: +91 9156156570</p>
             </div>
           </div>
         </div>
