@@ -7,6 +7,7 @@ const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
   morning: [
     "7:00 AM - 7:30 AM",
+    "7:30 AM - 8:00 AM",
     "8:00 AM - 8:30 AM",
     "8:30 AM - 9:00 AM",
     "9:00 AM - 9:30 AM", 
@@ -20,7 +21,7 @@ const TIME_SLOTS = {
     "3:00 PM - 3:30 PM",
     "3:30 PM - 4:00 PM",*/
     "4:00 PM - 4:30 PM",
-    "4:30 PM - 4:00 PM",
+    "4:30 PM - 5:00 PM",
   ],
   evening: [
     "5:00 PM - 5:30 PM",
