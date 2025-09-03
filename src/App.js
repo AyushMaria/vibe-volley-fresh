@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import { supabase } from "./supabaseClient";
 import emailjs from '@emailjs/browser';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
@@ -51,6 +51,8 @@ function BookingForm() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+
+  const navigate = useNavigate();
 
   const isFormReady =
     name.trim() !== "" && 
@@ -288,7 +290,13 @@ function BookingForm() {
               className="logo-image"
             />
             {/*<h2 className="form-title">Vibe & Volley</h2>*/}
-            
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="admin-login-btn"
+            >
+              Admin Login
+            </button>
           </div>
 
           <form onSubmit={handleBookSlot} className="booking-form">
@@ -454,7 +462,6 @@ function BookingForm() {
   );
 }
 
-
 // New Admin Bookings Component
 function AdminBookings() {
   const [bookings, setBookings] = useState([]);
@@ -465,6 +472,13 @@ function AdminBookings() {
   useEffect(() => {
     fetchBookings();
   }, [selectedDate, searchPhone]);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+  localStorage.removeItem('authenticated');
+  navigate('/login');
+  };
 
   const fetchBookings = async () => {
     try {
@@ -516,7 +530,10 @@ function AdminBookings() {
     <div className="admin-container">
       <div className="admin-header">
         <h1>📊 Vibe & Volley - Bookings Dashboard</h1>
-        <Link to="http://localhost:3000/" className="back-to-form">← Back to Booking Form</Link>
+        <div>
+          <button onClick={handleLogout} className="logout-btn">Logout</button>
+          <Link to="/" className="back-to-form">← Back to Booking Form</Link>
+        </div>
       </div>
       
       <div className="admin-controls">
@@ -609,7 +626,6 @@ function AdminBookings() {
   );
 }
 
-
 // New Staff Bookings Component
 function StaffBookings() {
   const [bookings, setBookings] = useState([]);
@@ -653,7 +669,7 @@ function StaffBookings() {
     <div className="admin-container">
       <div className="admin-header">
         <h1>📊 Vibe & Volley - Bookings Dashboard</h1>
-        <Link to="http://localhost:3000/" className="back-to-form">← Back to Booking Form</Link>
+        <Link to="/" className="back-to-form">← Back to Booking Form</Link>
       </div>
       
       <div className="admin-controls">
@@ -737,14 +753,96 @@ function StaffBookings() {
   );
 }
 
-// Main App Component with Router
+// Login Component
+function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Simple authentication check
+    if (email === 'admin@vibevolley' && password === 'vibe123') {
+      localStorage.setItem('authenticated', 'true');
+      navigate('/admin');
+    } else {
+      setError('Invalid id or password');
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-form">
+        <h2>Admin Login</h2>
+        <p>Access the Vibe & Volley Admin Dashboard</p>
+        
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="login-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="login-input"
+            />
+          </div>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <button type="submit" className="login-btn">
+            Login to Admin Dashboard
+          </button>
+        </form>
+        
+        <div className="login-footer">
+          <Link to="/" className="back-link">← Back to Booking Form</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Protected Route Component
+function ProtectedRoute({ children }) {
+  const isAuthenticated = localStorage.getItem('authenticated') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+}
+
+
+// Main App Component with Login Protection
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<BookingForm />} />
-        <Route path="/admin" element={<AdminBookings />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/staff" element={<StaffBookings />} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <AdminBookings />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </Router>
   );
