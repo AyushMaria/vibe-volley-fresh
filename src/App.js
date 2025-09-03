@@ -718,7 +718,7 @@ function StaffBookings() {
                   <th>Name</th>
                   <th>Phone</th>
                   {/*<th>Email</th>*/}
-                  <th>Time Block</th>
+                  {/*<th>Time Block</th>*/}
                   <th>Total</th>
                   {/*<th>Promo</th>*/}
                 </tr>
@@ -735,7 +735,7 @@ function StaffBookings() {
                     <td>{booking.name}</td>
                     <td>{booking.phone}</td>
                     {/*<td>{booking.email}</td>*/}
-                    <td className="time-block-cell">{booking.time_block}</td>
+                    {/*<td className="time-block-cell">{booking.time_block}</td>*/}
                     <td className="price-cell">₹{booking.total_price}</td>
                     {/*<td>{booking.promo_code || 'None'}</td>*/}
                   </tr>
