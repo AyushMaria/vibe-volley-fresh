@@ -718,11 +718,11 @@ function StaffBookings() {
               <thead>
                 <tr>
                   <th>Date</th>
+                  <th>Slots</th>
                   <th>Name</th>
                   <th>Phone</th>
                   <th>Email</th>
                   <th>Time Block</th>
-                  <th>Slots</th>
                   <th>Total</th>
                   <th>Promo</th>
                 </tr>
@@ -731,15 +731,15 @@ function StaffBookings() {
                 {bookings.map((booking) => (
                   <tr key={booking.id}>
                     <td>{booking.booking_date}</td>
-                    <td>{booking.name}</td>
-                    <td>{booking.phone}</td>
-                    <td>{booking.email}</td>
-                    <td className="time-block-cell">{booking.time_block}</td>
                     <td className="slots-cell">
                       {Array.isArray(booking.slots) 
                         ? booking.slots.join(', ') 
                         : booking.slots}
                     </td>
+                    <td>{booking.name}</td>
+                    <td>{booking.phone}</td>
+                    <td>{booking.email}</td>
+                    <td className="time-block-cell">{booking.time_block}</td>
                     <td className="price-cell">₹{booking.total_price}</td>
                     <td>{booking.promo_code || 'None'}</td>
                   </tr>
