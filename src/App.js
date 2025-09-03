@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import { supabase } from "./supabaseClient";
 import emailjs from '@emailjs/browser';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
@@ -38,7 +39,7 @@ const TIME_SLOTS = {
     "10:30 PM - 11:00 PM",
   ],
 };
-export default function App() {
+function BookingForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -450,5 +451,301 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+
+// New Admin Bookings Component
+function AdminBookings() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [searchPhone, setSearchPhone] = useState("");
+
+  useEffect(() => {
+    fetchBookings();
+  }, [selectedDate, searchPhone]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('bookings')
+        .select('*')
+        .order('booking_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (selectedDate) {
+        query = query.eq('booking_date', selectedDate);
+      }
+
+      if (searchPhone) {
+        query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteBooking = async (id) => {
+    if (window.confirm('Are you sure you want to delete this booking?')) {
+      try {
+        const { error } = await supabase
+          .from('bookings')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        fetchBookings(); // Refresh the list
+        alert('Booking deleted successfully!');
+      } catch (error) {
+        console.error('Error deleting booking:', error);
+        alert('Failed to delete booking');
+      }
+    }
+  };
+
+  return (
+    <div className="admin-container">
+      <div className="admin-header">
+        <h1>📊 Vibe & Volley - Bookings Dashboard</h1>
+        <Link to="http://localhost:3000/" className="back-to-form">← Back to Booking Form</Link>
+      </div>
+      
+      <div className="admin-controls">
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          placeholder="Filter by date"
+          className="admin-input"
+        />
+        <input
+          type="text"
+          value={searchPhone}
+          onChange={(e) => setSearchPhone(e.target.value)}
+          placeholder="Search by phone number"
+          className="admin-input"
+        />
+        <button 
+          onClick={() => {
+            setSelectedDate("");
+            setSearchPhone("");
+          }}
+          className="clear-filters-btn"
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="loading-container">
+          <p>Loading bookings...</p>
+        </div>
+      ) : bookings.length === 0 ? (
+        <div className="no-bookings">
+          <p>No bookings found for the selected criteria.</p>
+        </div>
+      ) : (
+        <div className="bookings-table-container">
+          <div className="bookings-summary">
+            <p><strong>Total Bookings:</strong> {bookings.length}</p>
+            <p><strong>Total Revenue:</strong> ₹{bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0)}</p>
+          </div>
+          
+          <div className="table-responsive">
+            <table className="bookings-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Time Block</th>
+                  <th>Slots</th>
+                  <th>Total</th>
+                  <th>Promo</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td>{booking.booking_date}</td>
+                    <td>{booking.name}</td>
+                    <td>{booking.phone}</td>
+                    <td>{booking.email}</td>
+                    <td className="time-block-cell">{booking.time_block}</td>
+                    <td className="slots-cell">
+                      {Array.isArray(booking.slots) 
+                        ? booking.slots.join(', ') 
+                        : booking.slots}
+                    </td>
+                    <td className="price-cell">₹{booking.total_price}</td>
+                    <td>{booking.promo_code || 'None'}</td>
+                    <td>
+                      <button 
+                        onClick={() => deleteBooking(booking.id)}
+                        className="delete-btn"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// New Staff Bookings Component
+function StaffBookings() {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [searchPhone, setSearchPhone] = useState("");
+
+  useEffect(() => {
+    fetchBookings();
+  }, [selectedDate, searchPhone]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('bookings')
+        .select('*')
+        .order('booking_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (selectedDate) {
+        query = query.eq('booking_date', selectedDate);
+      }
+
+      if (searchPhone) {
+        query = query.ilike('phone', `%${searchPhone}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="admin-container">
+      <div className="admin-header">
+        <h1>📊 Vibe & Volley - Bookings Dashboard</h1>
+        <Link to="http://localhost:3000/" className="back-to-form">← Back to Booking Form</Link>
+      </div>
+      
+      <div className="admin-controls">
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          placeholder="Filter by date"
+          className="admin-input"
+        />
+        <input
+          type="text"
+          value={searchPhone}
+          onChange={(e) => setSearchPhone(e.target.value)}
+          placeholder="Search by phone number"
+          className="admin-input"
+        />
+        <button 
+          onClick={() => {
+            setSelectedDate("");
+            setSearchPhone("");
+          }}
+          className="clear-filters-btn"
+        >
+          Clear Filters
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="loading-container">
+          <p>Loading bookings...</p>
+        </div>
+      ) : bookings.length === 0 ? (
+        <div className="no-bookings">
+          <p>No bookings found for the selected criteria.</p>
+        </div>
+      ) : (
+        <div className="bookings-table-container">
+          <div className="bookings-summary">
+            <p><strong>Total Bookings:</strong> {bookings.length}</p>
+            <p><strong>Total Revenue:</strong> ₹{bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0)}</p>
+          </div>
+          
+          <div className="table-responsive">
+            <table className="bookings-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Time Block</th>
+                  <th>Slots</th>
+                  <th>Total</th>
+                  <th>Promo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr key={booking.id}>
+                    <td>{booking.booking_date}</td>
+                    <td>{booking.name}</td>
+                    <td>{booking.phone}</td>
+                    <td>{booking.email}</td>
+                    <td className="time-block-cell">{booking.time_block}</td>
+                    <td className="slots-cell">
+                      {Array.isArray(booking.slots) 
+                        ? booking.slots.join(', ') 
+                        : booking.slots}
+                    </td>
+                    <td className="price-cell">₹{booking.total_price}</td>
+                    <td>{booking.promo_code || 'None'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Main App Component with Router
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<BookingForm />} />
+        <Route path="/admin" element={<AdminBookings />} />
+        <Route path="/staff" element={<StaffBookings />} />
+      </Routes>
+    </Router>
   );
 }
