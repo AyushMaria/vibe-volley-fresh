@@ -708,11 +708,7 @@ function StaffBookings() {
         </div>
       ) : (
         <div className="bookings-table-container">
-          <div className="bookings-summary">
-            <p><strong>Total Bookings:</strong> {bookings.length}</p>
-            <p><strong>Total Revenue:</strong> ₹{bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0)}</p>
-          </div>
-          
+                  
           <div className="table-responsive">
             <table className="bookings-table">
               <thead>
@@ -721,10 +717,10 @@ function StaffBookings() {
                   <th>Slots</th>
                   <th>Name</th>
                   <th>Phone</th>
-                  <th>Email</th>
+                  {/*<th>Email</th>*/}
                   <th>Time Block</th>
                   <th>Total</th>
-                  <th>Promo</th>
+                  {/*<th>Promo</th>*/}
                 </tr>
               </thead>
               <tbody>
@@ -738,10 +734,10 @@ function StaffBookings() {
                     </td>
                     <td>{booking.name}</td>
                     <td>{booking.phone}</td>
-                    <td>{booking.email}</td>
+                    {/*<td>{booking.email}</td>*/}
                     <td className="time-block-cell">{booking.time_block}</td>
                     <td className="price-cell">₹{booking.total_price}</td>
-                    <td>{booking.promo_code || 'None'}</td>
+                    {/*<td>{booking.promo_code || 'None'}</td>*/}
                   </tr>
                 ))}
               </tbody>
