@@ -364,7 +364,7 @@ function BookingForm() {
                   min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
-              <div className="form-group">
+              {/*<div className="form-group">
                 <label className="form-label">Promo Code</label>
                 <input
                   className="form-input"
@@ -373,7 +373,7 @@ function BookingForm() {
                   onChange={(e) => setPromoCode(e.target.value)}
                   disabled={submitting}
                 />
-              </div>
+              </div>*/}
             </div>
 
             <div className="form-group">
