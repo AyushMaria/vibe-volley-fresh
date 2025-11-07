@@ -911,3 +911,261 @@
     font-size: 1.5rem;
   }
 }
+
+
+/* Manage Bookings Button */
+.manage-bookings-btn {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: linear-gradient(135deg, #18c566, #159652);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(24, 197, 102, 0.3);
+}
+
+.manage-bookings-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(24, 197, 102, 0.4);
+}
+
+/* Manage Bookings Page */
+.manage-bookings-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+.manage-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.manage-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.manage-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: white;
+  color: #667eea;
+}
+
+/* Search Section */
+.search-section {
+  max-width: 600px;
+  margin: 0 auto 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #18c566;
+}
+
+.search-btn {
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #18c566, #159652);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(24, 197, 102, 0.3);
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.search-message {
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.search-message.success {
+  background: #e6ffe6;
+  color: #4f8a10;
+  border: 2px solid #b3ffb3;
+}
+
+.search-message.error {
+  background: #ffe6e6;
+  color: #d8000c;
+  border: 2px solid #ffb3b3;
+}
+
+.search-message.warning {
+  background: #fff4e6;
+  color: #cc8800;
+  border: 2px solid #ffd699;
+}
+
+/* Bookings List */
+.bookings-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bookings-list h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+}
+
+.booking-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.booking-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.booking-details {
+  margin-bottom: 20px;
+}
+
+.booking-row {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.booking-row:last-child {
+  border-bottom: none;
+}
+
+.booking-row .label {
+  font-weight: 600;
+  color: #666;
+  min-width: 120px;
+}
+
+.booking-row .value {
+  color: #333;
+  flex: 1;
+}
+
+.booking-row .value.time-block {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.booking-row .value.slots {
+  font-size: 0.9rem;
+}
+
+.booking-row .value.price {
+  font-weight: 700;
+  color: #18c566;
+  font-size: 1.2rem;
+}
+
+.cancel-booking-btn {
+  width: 100%;
+  padding: 12px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-booking-btn:hover {
+  background: #cc0000;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .manage-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .back-btn {
+    position: static;
+    margin-bottom: 20px;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .search-form {
+    flex-direction: column;
+  }
+  
+  .manage-bookings-btn {
+    position: static;
+    margin: 10px 0;
+    width: 100%;
+  }
+  
+  .admin-login-btn {
+    position: static;
+    margin: 10px 0;
+    width: 100%;
+  }
+}

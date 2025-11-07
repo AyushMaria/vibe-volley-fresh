@@ -291,6 +291,16 @@ function BookingForm() {
               alt="Vibe & Volley Logo" 
               className="logo-image"
             />
+
+            {/* Manage Bookings Button */}
+            <button
+              type="button"
+              onClick={() => navigate('/manage')}
+              className="manage-bookings-btn"
+            >
+              Manage Bookings
+            </button>
+
             {/*<h2 className="form-title">Vibe & Volley</h2>*/}
             <button
               type="button"
@@ -813,6 +823,175 @@ function Login() {
   );
 }
 
+
+// Booking Management Component
+function ManageBookings() {
+  const [phone, setPhone] = useState('');
+  const [userBookings, setUserBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+
+  const searchBookings = async (e) => {
+    e.preventDefault();
+    if (phone.trim().length !== 10) {
+      setMessage('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setMessage('');
+      
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('phone', phone)
+        .gte('booking_date', new Date().toISOString().slice(0, 10))
+        .order('booking_date', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setUserBookings(data);
+        setMessage('');
+      } else {
+        setUserBookings([]);
+        setMessage('No upcoming bookings found for this phone number.');
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      setMessage('Error fetching bookings. Please try again.');
+      setUserBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      setMessage('✅ Booking cancelled successfully!');
+      // Refresh the bookings list
+      setUserBookings(userBookings.filter(b => b.id !== bookingId));
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      setMessage('❌ Failed to cancel booking. Please try again.');
+    }
+  };
+
+  return (
+    <div className="App">
+      <div className="manage-bookings-container">
+        <div className="manage-header">
+          <h1>Manage Your Bookings</h1>
+          <p>Enter your phone number to view and manage your upcoming bookings</p>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="back-btn"
+          >
+            ← Back to Booking Form
+          </button>
+        </div>
+
+        <div className="search-section">
+          <form onSubmit={searchBookings} className="search-form">
+            <input
+              type="tel"
+              placeholder="Enter your phone number"
+              value={phone}
+              maxLength={10}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, "");
+                setPhone(val);
+              }}
+              className="search-input"
+              required
+            />
+            <button 
+              type="submit" 
+              disabled={loading || phone.length !== 10}
+              className="search-btn"
+            >
+              {loading ? 'Searching...' : 'Search Bookings'}
+            </button>
+          </form>
+
+          {message && (
+            <div className={`search-message ${message.includes('❌') ? 'error' : userBookings.length === 0 ? 'warning' : 'success'}`}>
+              {message}
+            </div>
+          )}
+        </div>
+
+        {userBookings.length > 0 && (
+          <div className="bookings-list">
+            <h2>Your Upcoming Bookings ({userBookings.length})</h2>
+            {userBookings.map((booking) => (
+              <div key={booking.id} className="booking-card">
+                <div className="booking-details">
+                  <div className="booking-row">
+                    <span className="label">Date:</span>
+                    <span className="value">{new Date(booking.booking_date).toLocaleDateString()}</span>
+                  </div>
+                  <div className="booking-row">
+                    <span className="label">Name:</span>
+                    <span className="value">{booking.name}</span>
+                  </div>
+                  <div className="booking-row">
+                    <span className="label">Email:</span>
+                    <span className="value">{booking.email}</span>
+                  </div>
+                  <div className="booking-row">
+                    <span className="label">Time Block:</span>
+                    <span className="value time-block">{booking.time_block}</span>
+                  </div>
+                  <div className="booking-row">
+                    <span className="label">Time Slots:</span>
+                    <span className="value slots">
+                      {Array.isArray(booking.slots) 
+                        ? booking.slots.join(', ') 
+                        : booking.slots}
+                    </span>
+                  </div>
+                  <div className="booking-row">
+                    <span className="label">Total Price:</span>
+                    <span className="value price">₹{booking.total_price}</span>
+                  </div>
+                  {booking.promo_code && (
+                    <div className="booking-row">
+                      <span className="label">Promo Code:</span>
+                      <span className="value">{booking.promo_code}</span>
+                    </div>
+                  )}
+                </div>
+                <button 
+                  onClick={() => cancelBooking(booking.id)}
+                  className="cancel-booking-btn"
+                >
+                  Cancel Booking
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const isAuthenticated = localStorage.getItem('authenticated') === 'true';
@@ -831,6 +1010,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<BookingForm />} />
+        <Route path="/manage" element={<ManageBookings />} />
         <Route path="/login" element={<Login />} />
         <Route path="/staff" element={<StaffBookings />} />
         <Route 
