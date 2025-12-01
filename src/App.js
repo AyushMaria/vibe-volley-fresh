@@ -298,7 +298,7 @@ function BookingForm() {
               onClick={() => navigate('/manage')}
               className="manage-bookings-btn"
             >
-              Manage Bookings
+              Manage Your Booking/s
             </button>
 
             {/*<h2 className="form-title">Vibe & Volley</h2>*/}
