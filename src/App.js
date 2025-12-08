@@ -5,7 +5,7 @@ import emailjs from '@emailjs/browser';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
 const IS_UNDER_MAINTENANCE = true; // set to false when you want to reopen
-const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable for maintenance and upgrades. Please check again in 10 days.";
+const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable as we are undergoing a facelift! Keep an eye on our Instagram handle for updates!";
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
@@ -52,6 +52,20 @@ function MaintenancePage() {
         <div className="maintenance-card">
           <h1>🔧 Court Under Maintenance</h1>
           <p>{MAINTENANCE_MESSAGE}</p>
+
+          <div className="maintenance-social">
+            <span>Stay updated here:</span>
+            <a
+              href="https://instagram.com/vibeandvolley"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="instagram-link"
+            >
+              {/* Simple Instagram icon using text */}
+              <span className="instagram-icon">📸</span>
+              <span>@vibeandvolley</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
