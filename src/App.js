@@ -4,6 +4,9 @@ import { supabase } from "./supabaseClient";
 import emailjs from '@emailjs/browser';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
+const IS_UNDER_MAINTENANCE = true; // set to false when you want to reopen
+const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable for maintenance and upgrades. Please check again in 10 days.";
+
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
   morning: [
@@ -41,6 +44,21 @@ const TIME_SLOTS = {
     "11:30 PM - 12:00 AM",
   ],
 };
+
+function MaintenancePage() {
+  return (
+    <div className="App">
+      <div className="maintenance-container">
+        <div className="maintenance-card">
+          <h1>🔧 Court Under Maintenance</h1>
+          <p>{MAINTENANCE_MESSAGE}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function BookingForm() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -153,9 +171,39 @@ function BookingForm() {
   const isBookButtonDisabled = selectedSlots.length === 0;
   const totalPrice = selectedSlots.length * 250;
 
+  // Returns true if booking is NOT allowed due to 11pm cutoff for next-morning bookings
+  const isNextMorningCutoffPassed = () => {
+    if (!bookingDate || timeBlock !== "morning") return false;
+
+    const now = new Date();
+
+    // Build "today" date string in YYYY-MM-DD (same format as bookingDate)
+    const todayStr = now.toISOString().slice(0, 10);
+
+    // Build "tomorrow" date string
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+    // Only care when user tries to book *tomorrow morning*
+    if (bookingDate !== tomorrowStr) return false;
+
+    // Build cutoff datetime: today at 23:00
+    const cutoff = new Date();
+    cutoff.setHours(23, 0, 0, 0);
+
+    return now > cutoff;
+  };
+
   const handleBookSlot = async (e) => {
     e.preventDefault();
     if (isBookButtonDisabled || submitting) return;
+
+    // Cutoff rule: block next-day morning bookings after 11pm today
+    if (isNextMorningCutoffPassed()) {
+      setMessage("❌ Morning bookings for tomorrow are closed after 11:00 pm. Please choose a different time or date.");
+      return;
+    }
 
     setSubmitting(true);
     setMessage("");
@@ -1009,19 +1057,33 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<BookingForm />} />
-        <Route path="/manage" element={<ManageBookings />} />
+        {/* Public routes that should show maintenance when flag is true */}
+        <Route
+          path="/"
+          element={
+            IS_UNDER_MAINTENANCE ? <MaintenancePage /> : <BookingForm />
+          }
+        />
+        <Route
+          path="/manage"
+          element={
+            IS_UNDER_MAINTENANCE ? <MaintenancePage /> : <ManageBookings />
+          }
+        />
+
+        {/* Admin / staff / login always accessible */}
         <Route path="/login" element={<Login />} />
         <Route path="/staff" element={<StaffBookings />} />
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <ProtectedRoute>
               <AdminBookings />
             </ProtectedRoute>
-          } 
+          }
         />
       </Routes>
     </Router>
   );
 }
+

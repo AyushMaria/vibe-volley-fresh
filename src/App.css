@@ -1169,3 +1169,34 @@
     width: 100%;
   }
 }
+
+
+.maintenance-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.maintenance-card {
+  max-width: 600px;
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+}
+
+.maintenance-card h1 {
+  margin-bottom: 20px;
+  font-size: 2rem;
+  color: #18c566;
+}
+
+.maintenance-card p {
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.5;
+}
