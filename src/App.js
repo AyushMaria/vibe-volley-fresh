@@ -191,9 +191,6 @@ function BookingForm() {
 
     const now = new Date();
 
-    // Build "today" date string in YYYY-MM-DD (same format as bookingDate)
-    const todayStr = now.toISOString().slice(0, 10);
-
     // Build "tomorrow" date string
     const tomorrow = new Date(now);
     tomorrow.setDate(now.getDate() + 1);
@@ -223,7 +220,7 @@ function BookingForm() {
     setMessage("");
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('bookings')
         .insert([
           {
