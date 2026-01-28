@@ -544,6 +544,34 @@ function AdminBookings() {
   const [searchPhone, setSearchPhone] = useState("");
 
   useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        let query = supabase
+          .from('bookings')
+          .select('*')
+          .order('booking_date', { ascending: false })
+          .order('created_at', { ascending: false });
+
+        if (selectedDate) {
+          query = query.eq('booking_date', selectedDate);
+        }
+
+        if (searchPhone) {
+          query = query.ilike('phone', `%${searchPhone}%`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        setBookings(data || []);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchBookings();
   }, [selectedDate, searchPhone]);
 
@@ -708,36 +736,36 @@ function StaffBookings() {
   const [searchPhone, setSearchPhone] = useState("");
 
   useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        let query = supabase
+          .from('bookings')
+          .select('*')
+          .order('booking_date', { ascending: false })
+          .order('created_at', { ascending: false });
+
+        if (selectedDate) {
+          query = query.eq('booking_date', selectedDate);
+        }
+
+        if (searchPhone) {
+          query = query.ilike('phone', `%${searchPhone}%`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        setBookings(data || []);
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        setBookings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchBookings();
   }, [selectedDate, searchPhone]);
-
-  const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      let query = supabase
-        .from('bookings')
-        .select('*')
-        .order('booking_date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (selectedDate) {
-        query = query.eq('booking_date', selectedDate);
-      }
-
-      if (searchPhone) {
-        query = query.ilike('phone', `%${searchPhone}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setBookings(data || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      setBookings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="admin-container">
