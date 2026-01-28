@@ -4,7 +4,7 @@ import { supabase } from "./supabaseClient";
 import emailjs from '@emailjs/browser';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
-const IS_UNDER_MAINTENANCE = true; // set to false when you want to reopen
+const IS_UNDER_MAINTENANCE = false; // set to false when you want to reopen
 const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable as we are undergoing a facelift! Keep an eye on our Instagram handle for updates!";
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
