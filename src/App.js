@@ -45,6 +45,13 @@ const TIME_SLOTS = {
   ],
 };
 
+const VIBESLOT_ELIGIBLE_SLOTS  = [
+        "4:00 PM - 4:30 PM",
+        "4:30 PM - 5:00 PM",
+        "5:00 PM - 5:30 PM",
+        "5:30 PM - 6:00 PM",
+  ]
+
 function MaintenancePage() {
   return (
     <div className="App">
@@ -85,6 +92,17 @@ function BookingForm() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+
+  const isVibeslotValid =
+    promoCode.trim().toUpperCase() === "VIBESLOT" &&
+    selectedSlots.length > 0 &&
+    selectedSlots.every((slot) => VIBESLOT_ELIGIBLE_SLOTS.includes(slot));
+
+  const isVibeslotInvalid =
+    promoCode.trim().toUpperCase() === "VIBESLOT" &&
+    selectedSlots.length > 0 &&
+    !isVibeslotValid;
+
 
   const navigate = useNavigate();
 
@@ -231,7 +249,8 @@ function BookingForm() {
             time_block: timeBlock,
             slots: selectedSlots,
             promo_code: promoCode || null,
-            total_price: totalPrice
+            // Store 0 for VIBESLOT since total is calculated on site
+            total_price: isVibeslotValid ? 0 : totalPrice,
           }
         ])
         .select();
@@ -244,25 +263,32 @@ function BookingForm() {
         booking_date: bookingDate,
         time_block: timeBlock,
         selected_slots: selectedSlots.join(', '),
-        total_price: totalPrice,
+        // Send appropriate price info in email
+        total_price: isVibeslotValid
+          ? '₹75 per player (calculated on site)'
+          : `₹${totalPrice}`,
         phone: phone,
-        promo_code: promoCode || 'V&VREDO' || 'none'
-      }
-
-      console.log('Sending email with params:', emailParams); // Debug log
+        promo_code: promoCode || 'None',
+      };
 
       await emailjs.send(
         process.env.REACT_APP_EMAILJS_SERVICE_ID,
         process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
         emailParams,
-        process.env.REACT_APP_EMAILJS_PUBLIC_KEY // Replace with your EmailJS public key
+        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
       );
 
-      setMessage(`✅ Booking confirmed! Confirmation email sent to ${email}. Total: ₹${totalPrice}`);
-      
+      // Different confirmation message based on promo
+      setMessage(
+        isVibeslotValid
+          ? `✅ Booking confirmed! ₹75 per player will be charged on site. Confirmation sent to ${email}.`
+          : `✅ Booking confirmed! Confirmation email sent to ${email}. Total: ₹${totalPrice}`
+      );
+
       // Reset form
       setName("");
       setPhone("");
+      setEmail("");
       setBookingDate("");
       setPromoCode("");
       setTimeBlock("");
@@ -275,6 +301,8 @@ function BookingForm() {
       setSubmitting(false);
     }
   };
+
+
 
   const isSlotBooked = (slot) => {
     /*console.log('=== SLOT COMPARISON DEBUG ===');
@@ -505,10 +533,23 @@ function BookingForm() {
                 )}
               </div>
             )}
-            
+
             {selectedSlots.length > 0 && (
-              <div className="price-summary">
-                Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
+              <div className={`price-summary ${isVibeslotValid ? 'promo-applied' : ''}`}>
+                {isVibeslotValid ? (
+                  <p className="promo-per-player">
+                    🎉 Promo <strong>VIBESLOT</strong> applied! ₹75 per player will be charged on site.
+                  </p>
+                ) : (
+                  <>
+                    Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
+                    {isVibeslotInvalid && (
+                      <p className="promo-warning">
+                        ⚠️ VIBESLOT is only valid for 4:00 PM – 6:00 PM slots.
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
