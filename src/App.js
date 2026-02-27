@@ -45,6 +45,19 @@ const TIME_SLOTS = {
   ],
 };
 
+const BANNED_PHONES = [
+  "7499122175",
+  "8087940490",
+  // Add more banned phone numbers here
+];
+
+const BANNED_EMAILS = [
+  "banned@example.com",
+  "spam@example.com",
+  // Add more banned emails here
+];
+
+
 const VIBESLOT_ELIGIBLE_SLOTS  = [
         "4:00 PM - 4:30 PM",
         "4:30 PM - 5:00 PM",
@@ -106,12 +119,17 @@ function BookingForm() {
 
   const navigate = useNavigate();
 
+  const isBanned =
+    BANNED_PHONES.includes(phone.trim()) ||
+    BANNED_EMAILS.includes(email.trim().toLowerCase());
+
   const isFormReady =
     name.trim() !== "" && 
     phone.trim().length === 10 && 
     bookingDate !== ""&&
     email.trim() !== "" && // Add email validation
-    email.includes("@"); // Basic email validation
+    email.includes("@") &&// Basic email validation
+    !isBanned;
 
   // Fetch booked slots function
   const fetchBookedSlots = async (date, block) => {
@@ -229,6 +247,11 @@ function BookingForm() {
   const handleBookSlot = async (e) => {
     e.preventDefault();
     if (isBookButtonDisabled || submitting) return;
+
+    if (isBanned) {
+      setMessage("❌ This phone number or email is not allowed to make bookings.");
+      return;
+    }
 
     // Cutoff rule: block next-day morning bookings after 11pm today
     if (isNextMorningCutoffPassed()) {
@@ -564,6 +587,13 @@ function BookingForm() {
                     )}
                   </>
                 )}
+              </div>
+            )}
+
+            {isBanned && (phone.length === 10 || email.includes("@")) && (
+              <div className="message error">
+                ❌ This phone number or email is not eligible to make bookings. 
+                Please contact us at +91 9156156570 for assistance.
               </div>
             )}
 
