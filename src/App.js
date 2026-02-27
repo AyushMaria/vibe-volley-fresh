@@ -173,19 +173,21 @@ function BookingForm() {
       .on(
         'postgres_changes',
         { 
-          event: 'INSERT', 
+          event: '*', 
           schema: 'public', 
           table: 'bookings' 
         },
         async (payload) => {
-          console.log('New booking inserted:', payload);
+          console.log('Booking change detected:', payload);
           if (bookingDate && timeBlock) {
             const booked = await fetchBookedSlots(bookingDate, timeBlock);
             setBookedSlots(booked);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+      console.log('Realtime subscription status:', status); // ← Added status log
+      });
 
     return () => {
       supabase.removeChannel(channel);
