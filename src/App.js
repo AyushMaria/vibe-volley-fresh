@@ -237,6 +237,18 @@ function BookingForm() {
     setSubmitting(true);
     setMessage("");
 
+    // ✅ Fetch latest slots right before submitting
+    const latestBooked = await fetchBookedSlots(bookingDate, timeBlock);
+    const conflict = selectedSlots.some(slot => latestBooked.includes(slot));
+
+    if (conflict) {
+      setBookedSlots(latestBooked); // Update UI to show newly booked slots
+      setSelectedSlots([]); // Clear user's selection
+      setMessage("❌ One or more slots were just booked by someone else. Please reselect.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('bookings')
