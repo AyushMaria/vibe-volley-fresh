@@ -377,18 +377,20 @@ function BookingForm() {
             
             <div className="timing-section">
               <div className="day-group">
-                <h3 className="day-title">Monday - Friday</h3>
+                <h3 className="day-title">Monday - Sunday</h3>
                 <div className="time-info">
                   <p className="time-slot-info">7am - 11am</p>
-                  <p className="time-slot-info">4pm - 11pm</p>
+                  <p className="time-slot-info">4pm - 12am</p>
                 </div>
               </div>
               
               <div className="day-group">
-                <h3 className="day-title">Saturday and Sunday</h3>
+                <h3 className="day-title">Premium Paddles Available @ ₹50 per hr</h3>
                 <div className="time-info">
-                  <p className="time-slot-info">7am - 11am</p>
-                  <p className="time-slot-info">4pm - 11pm</p>
+                  <p className="time-slot-info">Agassi</p>
+                  <p className="time-slot-info">Boomstik</p>
+                  <p className="time-slot-info">J2NF</p>
+                  <p className="time-slot-info">Perseus IV</p>
                 </div>
               </div>
             </div>
@@ -396,12 +398,14 @@ function BookingForm() {
             <div className="pricing-section">
               <h3 className="pricing-title">Court Rates</h3>
               <div className="price-info">
-                <p className="price-item">₹500 per hour including equipment</p>
+                <p className="price-item">Peak: ₹500 per hour including equipment</p>
+                <p className="price-item">Off-Peak (9am - 5pm): ₹300 per hour including equipment</p>
               </div>
             </div>
             
             <div className="contact-section">
-              <p className="contact-info">Contact us for off time bookings: +91 9156156570</p>
+              <p className="contact-info">Admin: +91 9156156570</p>
+              <p className="contact-info">On Site Staff: +91 9096876337</p>    
             </div>
           </div>
         </div>
