@@ -373,7 +373,7 @@ function BookingForm() {
               <p className="left-form-subtitle">by Tiny Tots Kindergarten</p>
             </div>
 
-            /*<h1 className="main-title">TIMINGS</h1>*/
+            {/* <h1 className="main-title">TIMINGS</h1> */}
             
             <div className="timing-section">
               <div className="day-group">
