@@ -58,12 +58,6 @@ const BANNED_EMAILS = [
 ];
 
 
-const VIBESLOT_ELIGIBLE_SLOTS  = [
-        "4:00 PM - 4:30 PM",
-        "4:30 PM - 5:00 PM",
-        "5:00 PM - 5:30 PM",
-        "5:30 PM - 6:00 PM",
-  ]
 
 function MaintenancePage() {
   return (
@@ -105,20 +99,100 @@ function BookingForm() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
-
-  const isVibeslotValid =
-    promoCode.trim().toUpperCase() === "VIBESLOT" &&
-    selectedSlots.length > 0 &&
-    selectedSlots.every((slot) => VIBESLOT_ELIGIBLE_SLOTS.includes(slot));
-
-  const isVibeslotInvalid =
-    promoCode.trim().toUpperCase() === "VIBESLOT" &&
-    selectedSlots.length > 0 &&
-    !isVibeslotValid;
-
-
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoStatus, setPromoStatus] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  
   const navigate = useNavigate();
 
+  const fetchAndApplyPromo = async () => {
+    const raw = promoCode.trim().toUpperCase();
+    if (!raw) {
+      setAppliedPromo(null);
+      setPromoStatus("");
+      return;
+    }
+  
+    if (selectedSlots.length === 0) {
+      setPromoStatus("⚠️ Select at least one slot before applying a promo code.");
+      return;
+    }
+  
+    setPromoLoading(true);
+    setPromoStatus("");
+    setAppliedPromo(null);
+  
+    try {
+      const { data, error } = await supabase
+        .from("promo_codes")
+        .select("*")
+        .eq("code", raw)
+        .maybeSingle();
+  
+      if (error) throw error;
+  
+      if (!data) {
+        setPromoStatus("❌ Invalid promo code.");
+        setPromoLoading(false);
+        return;
+      }
+  
+      // Check min_slots requirement
+      if (data.min_slots && selectedSlots.length < data.min_slots) {
+        setPromoStatus(`❌ This promo requires at least ${data.min_slots} slot(s). You have selected ${selectedSlots.length}.`);
+        setPromoLoading(false);
+        return;
+      }
+  
+      // Check per-phone usage limit
+      if (data.max_uses_per_phone) {
+        const { count, error: usageError } = await supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("phone", phone.trim())
+          .eq("promo_code", raw);
+  
+        if (usageError) throw usageError;
+  
+        if (count >= data.max_uses_per_phone) {
+          setPromoStatus(`❌ You have already used this promo code the maximum number of times.`);
+          setPromoLoading(false);
+          return;
+        }
+      }
+  
+      setAppliedPromo(data);
+      setPromoStatus(`✅ Promo code ${data.code} applied!`);
+    } catch (err) {
+      console.error("Promo fetch error:", err);
+      setPromoStatus("❌ Failed to validate promo code. Please try again.");
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+  
+  const calculateFinalPrice = () => {
+    if (!appliedPromo) return totalPrice;
+    if (appliedPromo.discount_type === "percent") {
+      const discounted = totalPrice * (1 - appliedPromo.discount_value / 100);
+      return Math.round(discounted);
+    }
+    if (appliedPromo.discount_type === "flat") {
+      return Math.max(0, totalPrice - appliedPromo.discount_value);
+    }
+    return totalPrice;
+  };
+  
+  const getPriceDisplay = () => {
+    const final = calculateFinalPrice();
+    if (!appliedPromo) return `₹${totalPrice}`;
+    if (appliedPromo.discount_value === 100 && appliedPromo.discount_type === "percent") {
+      return "₹0 (Free with promo)";
+    }
+    return `₹${final} (was ₹${totalPrice})`;
+  };
+  
+  
   const isBanned =
     BANNED_PHONES.includes(phone.trim()) ||
     BANNED_EMAILS.includes(email.trim().toLowerCase());
@@ -212,6 +286,14 @@ function BookingForm() {
     };
   }, [bookingDate, timeBlock]);
 
+  useEffect(() => {
+    if (!appliedPromo) return;
+    if (appliedPromo.min_slots && selectedSlots.length < appliedPromo.min_slots) {
+      setAppliedPromo(null);
+      setPromoStatus(`⚠️ Promo removed: you need at least ${appliedPromo.min_slots} slot(s).`);
+    }
+  }, [selectedSlots]);  
+
   const toggleSlot = (slot) => {
     if (selectedSlots.includes(slot)) {
       setSelectedSlots(selectedSlots.filter((s) => s !== slot));
@@ -274,6 +356,12 @@ function BookingForm() {
       return;
     }
 
+    if (promoCode.trim() && !appliedPromo) {
+      setMessage("❌ Please apply your promo code using the Apply button before confirming.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('bookings')
@@ -286,8 +374,8 @@ function BookingForm() {
             time_block: timeBlock,
             slots: selectedSlots,
             promo_code: promoCode || null,
-            // Store 0 for VIBESLOT since total is calculated on site
-            total_price: isVibeslotValid ? 0 : totalPrice,
+            // NEW — derives final price from Supabase promo data
+            total_price: calculateFinalPrice(),
           }
         ])
         .select();
@@ -301,9 +389,7 @@ function BookingForm() {
         time_block: timeBlock,
         selected_slots: selectedSlots.join(', '),
         // Send appropriate price info in email
-        total_price: isVibeslotValid
-          ? '₹75 per player (calculated on site)'
-          : `₹${totalPrice}`,
+        total_price: getPriceDisplay(),
         phone: phone,
         promo_code: promoCode || 'None',
       };
@@ -316,11 +402,7 @@ function BookingForm() {
       );
 
       // Different confirmation message based on promo
-      setMessage(
-        isVibeslotValid
-          ? `✅ Booking confirmed! ₹75 per player will be charged on site. Confirmation sent to ${email}.`
-          : `✅ Booking confirmed! Confirmation email sent to ${email}. Total: ₹${totalPrice}`
-      );
+      setMessage(`✅ Booking confirmed! Confirmation email sent to ${email}. Total: ${getPriceDisplay()}`);
 
       // Reset form
       setName("");
@@ -328,6 +410,8 @@ function BookingForm() {
       setEmail("");
       setBookingDate("");
       setPromoCode("");
+      setAppliedPromo(null);
+      setPromoStatus("");
       setTimeBlock("");
       setSelectedSlots([]);
 
@@ -492,16 +576,37 @@ function BookingForm() {
                   min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
-              {<div className="form-group">
+              // NEW PROMO INPUT — with Apply button and live status
+              <div className="form-group">
                 <label className="form-label">Promo Code</label>
-                <input
-                  className="form-input"
-                  placeholder="Enter code"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  disabled={submitting}
-                />
-              </div>}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    className="form-input"
+                    placeholder="Enter code"
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value);
+                      setAppliedPromo(null);
+                      setPromoStatus("");
+                    }}
+                    disabled={submitting || promoLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={fetchAndApplyPromo}
+                    disabled={!promoCode.trim() || submitting || promoLoading}
+                    className="time-block-btn"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    {promoLoading ? "..." : "Apply"}
+                  </button>
+                </div>
+                {promoStatus && (
+                  <p style={{ fontSize: "0.85rem", marginTop: "4px", color: promoStatus.startsWith("✅") ? "green" : "orange" }}>
+                    {promoStatus}
+                  </p>
+                )}
+              </div>                 
             </div>
 
             <div className="form-group">
@@ -575,21 +680,15 @@ function BookingForm() {
               </div>
             )}
 
+            
             {selectedSlots.length > 0 && (
-              <div className={`price-summary ${isVibeslotValid ? 'promo-applied' : ''}`}>
-                {isVibeslotValid ? (
+              <div className={`price-summary ${appliedPromo ? 'promo-applied' : ''}`}>
+                {appliedPromo ? (
                   <p className="promo-per-player">
-                    🎉 Promo <strong>VIBESLOT</strong> applied! ₹75 per player will be charged on site.
+                    🎉 Promo <strong>{appliedPromo.code}</strong> applied! {getPriceDisplay()} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
                   </p>
                 ) : (
-                  <>
-                    Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
-                    {isVibeslotInvalid && (
-                      <p className="promo-warning">
-                        ⚠️ VIBESLOT is only valid for 4:00 PM – 6:00 PM slots.
-                      </p>
-                    )}
-                  </>
+                  <p>Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}</p>
                 )}
               </div>
             )}
