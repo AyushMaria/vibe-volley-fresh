@@ -292,7 +292,7 @@ function BookingForm() {
       setAppliedPromo(null);
       setPromoStatus(`⚠️ Promo removed: you need at least ${appliedPromo.min_slots} slot(s).`);
     }
-  }, [selectedSlots]);  
+  }, [selectedSlots, appliedPromo]);  
 
   const toggleSlot = (slot) => {
     if (selectedSlots.includes(slot)) {
