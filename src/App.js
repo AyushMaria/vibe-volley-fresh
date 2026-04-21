@@ -373,7 +373,7 @@ function BookingForm() {
             booking_date: bookingDate,
             time_block: timeBlock,
             slots: selectedSlots,
-            promo_code: promoCode || null,
+            promo_code: appliedPromo?.code || null,
             // NEW — derives final price from Supabase promo data
             total_price: calculateFinalPrice(),
           }
@@ -576,7 +576,7 @@ function BookingForm() {
                   min={new Date().toISOString().slice(0, 10)}
                 />
               </div>
-              // NEW PROMO INPUT — with Apply button and live status
+              
               <div className="form-group">
                 <label className="form-label">Promo Code</label>
                 <div style={{ display: "flex", gap: "8px" }}>
