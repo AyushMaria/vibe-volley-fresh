@@ -410,8 +410,28 @@ function BookingForm() {
         process.env.REACT_APP_EMAILJS_PUBLIC_KEY
       );
 
+      // 🆕 Send WhatsApp confirmation via Vercel serverless function.
+      // Failures are swallowed so they never break the booking.
+      try {
+        await fetch('/api/send-whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone: `+91${phone.trim()}`,
+            bookingDate,
+            timeBlock,
+            slots: selectedSlots.join(', '),
+            totalPrice: getPriceDisplay(),
+            promoCode: promoCode || 'None',
+          }),
+        });
+      } catch (waErr) {
+        console.warn('WhatsApp notification failed (non-blocking):', waErr);
+      }
+
       // Different confirmation message based on promo
-      setMessage(`✅ Booking confirmed! Confirmation email sent to ${email}. Total: ${getPriceDisplay()}`);
+      setMessage(`✅ Booking confirmed! Email & WhatsApp confirmation sent. Total: ${getPriceDisplay()}`);
 
       // Reset form
       setName("");
