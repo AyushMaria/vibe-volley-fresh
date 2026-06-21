@@ -396,6 +396,28 @@
   color-scheme: light;
 }
 
+/* Phone input with +91 prefix */
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.phone-prefix {
+  padding: 15px 12px;
+  background: #f0f0f0;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #444;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.phone-input-wrapper .form-input {
+  flex: 1;
+}
+
 .time-blocks {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

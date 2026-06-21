@@ -549,19 +549,22 @@ function BookingForm() {
             </div>
 
             <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Phone Number"
-                value={phone}
-                maxLength={10}
-                onChange={(e) => {
-                  let val = e.target.value.replace(/\D/g, "");
-                  if (val.length > 10) val = val.slice(0, 10);
-                  setPhone(val);
-                }}
-                disabled={submitting}
-                required
-              />
+              <div className="phone-input-wrapper">
+                <span className="phone-prefix">+91</span>
+                <input
+                  className="form-input"
+                  placeholder="9876543210"
+                  value={phone}
+                  maxLength={10}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, "");
+                    if (val.length > 10) val = val.slice(0, 10);
+                    setPhone(val);
+                  }}
+                  disabled={submitting}
+                  required
+                />
+              </div>
             </div>
 
             {/* Email input disabled — WhatsApp confirmation used instead.
@@ -917,7 +920,7 @@ function AdminBookings() {
                   <th>Date</th>
                   <th>Name</th>
                   <th>Phone</th>
-                  <th>Email</th>
+                  <th>Payment Mode</th>
                   <th>Time Block</th>
                   <th>Slots</th>
                   <th>Total</th>
@@ -931,7 +934,7 @@ function AdminBookings() {
                     <td>{booking.booking_date}</td>
                     <td>{booking.name}</td>
                     <td>{booking.phone}</td>
-                    <td>{booking.email}</td>
+                    <td>{booking.payment_mode || 'None'}</td>
                     <td className="time-block-cell">{booking.time_block}</td>
                     <td className="slots-cell">
                       {Array.isArray(booking.slots) 
