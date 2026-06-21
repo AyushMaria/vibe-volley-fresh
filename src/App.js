@@ -18,12 +18,18 @@ const TIME_SLOTS = {
     "9:30 AM - 10:00 AM",
     "10:00 AM - 10:30 AM",
     "10:30 AM - 11:00 AM",
+    "11:00 AM - 11:30 AM",
+    "11:30 AM - 12:00 PM",
   ],
   afternoon: [
-    /*"2:00 PM - 2:30 PM",
+    "12:00 PM - 12:30 PM",
+    "12:30 PM - 1:00 PM",
+    "1:00 PM - 1:30 PM",
+    "1:30 PM - 2:00 PM",
+    "2:00 PM - 2:30 PM",
     "2:30 PM - 3:00 PM",
     "3:00 PM - 3:30 PM",
-    "3:30 PM - 4:00 PM",*/
+    "3:30 PM - 4:00 PM",
     "4:00 PM - 4:30 PM",
     "4:30 PM - 5:00 PM",
   ],
@@ -102,6 +108,7 @@ function BookingForm() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoStatus, setPromoStatus] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
+  const [paymentMode, setPaymentMode] = useState("Cash");
   
   const navigate = useNavigate();
 
@@ -376,6 +383,7 @@ function BookingForm() {
             promo_code: appliedPromo?.code || null,
             // NEW — derives final price from Supabase promo data
             total_price: calculateFinalPrice(),
+            payment_mode: paymentMode,
           }
         ])
         .select();
@@ -392,6 +400,7 @@ function BookingForm() {
         total_price: getPriceDisplay(),
         phone: phone,
         promo_code: promoCode || 'None',
+        payment_mode: paymentMode,
       };
 
       await emailjs.send(
@@ -414,6 +423,7 @@ function BookingForm() {
       setPromoStatus("");
       setTimeBlock("");
       setSelectedSlots([]);
+      setPaymentMode("Cash");
 
     } catch (error) {
       console.error('Error saving booking:', error);
@@ -463,8 +473,7 @@ function BookingForm() {
               <div className="day-group">
                 <h3 className="day-title">Monday - Sunday</h3>
                 <div className="time-info">
-                  <p className="time-slot-info">7am - 11am</p>
-                  <p className="time-slot-info">4pm - 12am</p>
+                  <p className="time-slot-info">7am - 12am</p>
                 </div>
               </div>
               
@@ -544,6 +553,20 @@ function BookingForm() {
                 disabled={submitting}
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Payment Mode (Paid after playing)</label>
+              <select
+                className="form-input"
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                disabled={submitting}
+                required
+              >
+                <option value="Cash">Cash</option>
+                <option value="Upi">UPI</option>
+              </select>
             </div>
 
             <div className="form-row">
