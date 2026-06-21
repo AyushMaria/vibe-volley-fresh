@@ -504,23 +504,6 @@ function BookingForm() {
               className="logo-image"
             />
 
-            {/* Manage Bookings Button */}
-            <button
-              type="button"
-              onClick={() => navigate('/manage')}
-              className="manage-bookings-btn"
-            >
-              Manage Your Booking/s
-            </button>
-
-            {/*<h2 className="form-title">Vibe & Volley</h2>*/}
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="admin-login-btn"
-            >
-              Admin Login
-            </button>
           </div>
 
           <form onSubmit={handleBookSlot} className="booking-form">
@@ -715,6 +698,23 @@ function BookingForm() {
               {submitting ? "Booking..." : "Confirm Booking"}
             </button>
           </form>
+
+          {/* 🆕 Moved below Confirm Booking */}
+          <button
+            type="button"
+            onClick={() => navigate('/manage')}
+            className="manage-bookings-btn"
+          >
+            Manage Your Booking/s
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="admin-login-btn"
+          >
+            Admin Login
+          </button>
         </div>
       </div>
     </div>

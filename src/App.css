@@ -915,9 +915,7 @@
 
 /* Manage Bookings Button */
 .manage-bookings-btn {
-  position: absolute;
-  top: 50px;
-  right: 10px;
+  margin-top: 16px;
   background: linear-gradient(135deg, #18c566, #159652);
   color: white;
   border: none;
