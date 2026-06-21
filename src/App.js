@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { supabase } from "./supabaseClient";
-import emailjs from '@emailjs/browser';
+// import emailjs from '@emailjs/browser';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
 const IS_UNDER_MAINTENANCE = false; // set to false when you want to reopen
@@ -208,8 +208,8 @@ function BookingForm() {
     name.trim() !== "" && 
     phone.trim().length === 10 && 
     bookingDate !== ""&&
-    email.trim() !== "" && // Add email validation
-    email.includes("@") &&// Basic email validation
+    // email.trim() !== "" && // Add email validation
+    // email.includes("@") &&// Basic email validation
     !isBanned;
 
   // Fetch booked slots function
@@ -390,25 +390,26 @@ function BookingForm() {
 
       if (error) throw error;
 
-      const emailParams = {
-        to_email: email,
-        to_name: name,
-        booking_date: bookingDate,
-        time_block: timeBlock,
-        selected_slots: selectedSlots.join(', '),
-        // Send appropriate price info in email
-        total_price: getPriceDisplay(),
-        phone: phone,
-        promo_code: promoCode || 'None',
-        payment_mode: paymentMode,
-      };
-
-      await emailjs.send(
-        process.env.REACT_APP_EMAILJS_SERVICE_ID,
-        process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
-        emailParams,
-        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
-      );
+      
+      // EmailJS confirmation disabled — WhatsApp confirmation used instead.
+      // const emailParams = {
+      //   to_email: email,
+      //   to_name: name,
+      //   booking_date: bookingDate,
+      //   time_block: timeBlock,
+      //   selected_slots: selectedSlots.join(', '),
+      //   total_price: getPriceDisplay(),
+      //   phone: phone,
+      //   promo_code: promoCode || 'None',
+      //   payment_mode: paymentMode,
+      // };
+      //
+      // await emailjs.send(
+      //   process.env.REACT_APP_EMAILJS_SERVICE_ID,
+      //   process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
+      //   emailParams,
+      //   process.env.REACT_APP_EMAILJS_PUBLIC_KEY
+      // );
 
       // 🆕 Send WhatsApp confirmation via Vercel serverless function.
       // Failures are swallowed so they never break the booking.
@@ -431,7 +432,7 @@ function BookingForm() {
       }
 
       // Different confirmation message based on promo
-      setMessage(`✅ Booking confirmed! Email & WhatsApp confirmation sent. Total: ${getPriceDisplay()}`);
+      setMessage(`✅ Booking confirmed! WhatsApp confirmation sent. Total: ${getPriceDisplay()}`);
 
       // Reset form
       setName("");
@@ -563,6 +564,7 @@ function BookingForm() {
               />
             </div>
 
+            {/* Email input disabled — WhatsApp confirmation used instead.
             <div className="form-group">
               <input
                 className="form-input"
@@ -574,6 +576,7 @@ function BookingForm() {
                 required
               />
             </div>
+            */}
 
             <div className="form-group">
               <label className="form-label">Payment Mode (Paid after playing)</label>
