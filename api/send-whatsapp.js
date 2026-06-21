@@ -34,18 +34,28 @@ module.exports = async (req, res) => {
     `🎟️ Promo: ${promoCode || 'None'}\n\n` +
     `See you on court! 🏓`;
 
-  try {
-    await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM,
-      to: `whatsapp:${phone}`,
-      body,
-    });
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+  const ownerTo = process.env.TWILIO_TO_OWNER;
+  const customerTo = `whatsapp:${phone}`;
 
-    await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM,
-      to: process.env.TWILIO_TO_OWNER,
-      body: `*New booking*\n${name} · ${phone}\n${bookingDate} · ${timeBlock}\nSlots: ${slots}\nTotal: ${totalPrice}`,
-    });
+  try {
+    // 1) Send to the customer — skip if it's the same as the sender
+    if (customerTo !== from) {
+      await client.messages.create({
+        from,
+        to: customerTo,
+        body,
+      });
+    }
+
+    // 2) Send a copy to the owner/staff — skip if it's the same as the sender
+    if (ownerTo && ownerTo !== from) {
+      await client.messages.create({
+        from,
+        to: ownerTo,
+        body: `*New booking*\n${name} · ${phone}\n${bookingDate} · ${timeBlock}\nSlots: ${slots}\nTotal: ${totalPrice}`,
+      });
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
