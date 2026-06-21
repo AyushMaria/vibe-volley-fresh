@@ -108,7 +108,7 @@ function BookingForm() {
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoStatus, setPromoStatus] = useState("");
   const [promoLoading, setPromoLoading] = useState(false);
-  const [paymentMode, setPaymentMode] = useState("Cash");
+  const [paymentMode, setPaymentMode] = useState("");
   
   const navigate = useNavigate();
 
@@ -309,7 +309,7 @@ function BookingForm() {
     }
   };
 
-  const isBookButtonDisabled = selectedSlots.length === 0;
+  const isBookButtonDisabled = selectedSlots.length === 0 || !paymentMode;
   const totalPrice = selectedSlots.length * 250;
 
   // Returns true if booking is NOT allowed due to 11pm cutoff for next-morning bookings
@@ -444,7 +444,7 @@ function BookingForm() {
       setPromoStatus("");
       setTimeBlock("");
       setSelectedSlots([]);
-      setPaymentMode("Cash");
+      setPaymentMode("");
 
     } catch (error) {
       console.error('Error saving booking:', error);
@@ -590,9 +590,15 @@ function BookingForm() {
                 disabled={submitting}
                 required
               >
+                <option value="" disabled>Choose one</option>
                 <option value="Cash">Cash</option>
                 <option value="Upi">UPI</option>
               </select>
+              {!paymentMode && (
+                <p style={{ fontSize: "0.85rem", marginTop: "4px", color: "orange" }}>
+                  Please choose a payment mode.
+                </p>
+              )}
             </div>
 
             <div className="form-row">
