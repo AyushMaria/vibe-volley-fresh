@@ -51,6 +51,30 @@ const TIME_SLOTS = {
   ],
 };
 
+// Off-peak = 9:00 AM – 5:00 PM. Rate: ₹150 per 30-min slot (₹300/hr).
+// Peak   = everything else.        Rate: ₹250 per 30-min slot (₹500/hr).
+const OFF_PEAK_SLOTS = new Set([
+  "9:00 AM - 9:30 AM",
+  "9:30 AM - 10:00 AM",
+  "10:00 AM - 10:30 AM",
+  "10:30 AM - 11:00 AM",
+  "11:00 AM - 11:30 AM",
+  "11:30 AM - 12:00 PM",
+  "12:00 PM - 12:30 PM",
+  "12:30 PM - 1:00 PM",
+  "1:00 PM - 1:30 PM",
+  "1:30 PM - 2:00 PM",
+  "2:00 PM - 2:30 PM",
+  "2:30 PM - 3:00 PM",
+  "3:00 PM - 3:30 PM",
+  "3:30 PM - 4:00 PM",
+  "4:00 PM - 4:30 PM",
+  "4:30 PM - 5:00 PM",
+]);
+
+const PEAK_RATE = 250;     // ₹ per 30-min slot
+const OFF_PEAK_RATE = 150; // ₹ per 30-min slot
+
 const BANNED_PHONES = [
   "7499122175",
   "8087940490",
@@ -310,7 +334,11 @@ function BookingForm() {
   };
 
   const isBookButtonDisabled = selectedSlots.length === 0 || !paymentMode;
-  const totalPrice = selectedSlots.length * 250;
+  // Calculate price per slot — off-peak slots (9 AM – 5 PM) cost ₹150,
+  // peak slots cost ₹250.
+  const peakCount = selectedSlots.filter(s => !OFF_PEAK_SLOTS.has(s)).length;
+  const offPeakCount = selectedSlots.length - peakCount;
+  const totalPrice = peakCount * PEAK_RATE + offPeakCount * OFF_PEAK_RATE;
 
   // Returns true if booking is NOT allowed due to 11pm cutoff for next-morning bookings
   const isNextMorningCutoffPassed = () => {
@@ -726,7 +754,19 @@ function BookingForm() {
                     🎉 Promo <strong>{appliedPromo.code}</strong> applied! {getPriceDisplay()} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
                   </p>
                 ) : (
-                  <p>Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}</p>
+                  <>
+                    <p>Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}</p>
+                    {peakCount > 0 && (
+                      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+                        Peak: {peakCount} × ₹{PEAK_RATE}
+                      </p>
+                    )}
+                    {offPeakCount > 0 && (
+                      <p style={{ fontSize: "0.85rem", color: "#666" }}>
+                        Off-Peak: {offPeakCount} × ₹{OFF_PEAK_RATE}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             )}
