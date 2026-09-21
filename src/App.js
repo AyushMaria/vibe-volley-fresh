@@ -3,7 +3,7 @@ import "./App.css";
 // The browser no longer talks to Supabase. Every read and write goes through
 // /api/* handlers holding the secret key, so no database credential ships here.
 // import emailjs from '@emailjs/browser';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 const IS_UNDER_MAINTENANCE = false; // set to false when you want to reopen
 const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable as we are undergoing a facelift! Keep an eye on our Instagram handle for updates!";
@@ -1018,12 +1018,12 @@ function StaffBookings() {
 
 // Login Component
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state && location.state.from;
 
   // The passcode is checked on the server and exchanged for an httpOnly
   // cookie. It used to be compared against a literal in this file, which
@@ -1037,9 +1037,12 @@ function Login() {
     try {
       const result = await api('session', {
         method: 'POST',
-        body: { passcode: password },
+        body: { passcode },
       });
-      navigate(result.role === 'admin' ? '/admin' : '/staff');
+      // A staff session can only ever use /staff, so send it there regardless
+      // of where it came from. An admin goes back to whatever they asked for.
+      const destination = result.role === 'staff' ? '/staff' : from || '/admin';
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.message || 'Incorrect passcode');
     } finally {
@@ -1050,36 +1053,30 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-form">
-        <h2>Admin Login</h2>
-        <p>Access the Vibe & Volley Admin Dashboard</p>
-        
+        <h2>Staff &amp; Admin Login</h2>
+        <p>
+          {from === '/staff'
+            ? 'Enter the staff passcode to see today\u2019s bookings.'
+            : 'Staff passcode for the day\u2019s bookings; admin passcode for the full dashboard.'}
+        </p>
+
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="login-input"
-            />
-          </div>
-          
-          <div className="form-group">
-            <input
               type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Passcode"
+              value={passcode}
+              onChange={(e) => setPasscode(e.target.value)}
               required
+              autoFocus
               className="login-input"
             />
           </div>
-          
+
           {error && <div className="error-message">{error}</div>}
-          
-          <button type="submit" className="login-btn">
-            Login to Admin Dashboard
+
+          <button type="submit" className="login-btn" disabled={submitting}>
+            {submitting ? 'Checking\u2026' : 'Log in'}
           </button>
         </form>
         
@@ -1260,6 +1257,7 @@ function ManageBookings() {
 // Protected Route Component
 function ProtectedRoute({ children, allow = ['admin'] }) {
   const [state, setState] = useState('checking');
+  const location = useLocation();
 
   // Asks the server who this session belongs to. The previous check read a
   // localStorage flag, which the visitor controls.
@@ -1280,7 +1278,9 @@ function ProtectedRoute({ children, allow = ['admin'] }) {
     return <div className="admin-container"><p>Checking access…</p></div>;
   }
   if (state === 'denied') {
-    return <Navigate to="/login" replace />;
+    // Carry the intended destination through the login round-trip, otherwise
+    // someone asking for /staff is silently handed /admin instead.
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
   return children;
 }
