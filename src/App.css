@@ -24,15 +24,19 @@
 .App {
   min-height: 100vh;
   background: radial-gradient(120% 90% at 78% 8%, #23301F 0%, var(--vv-ink) 62%);
-  padding: 24px 20px 20px;
+  padding: 40px 24px;
   font-family: var(--vv-font);
   color: var(--vv-ink);
   box-sizing: border-box;
+  display: flex;
 }
 
+/* `margin: auto` rather than `align-items: center` — it centres on both axes
+   but still lets a tall card overflow downwards instead of clipping its top. */
 .vv-shell {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 1120px;
+  margin: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -88,17 +92,22 @@
 
 .brand-content { display: flex; flex-direction: column; height: 100%; }
 
-.logo-section { margin-bottom: 18px; }
+.logo-section {
+  margin-bottom: 18px;
+  text-align: center;
+}
 
 .left-logo-image {
   display: block;
   width: 244px;
   max-width: 100%;
   height: auto;
+  margin: 0 auto;
 }
 
 .left-form-subtitle {
   margin: 12px 0 0;
+  text-align: center;
   font-size: 0.82rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.66);
@@ -494,9 +503,9 @@ select.form-input { cursor: pointer; }
    the first field, not a wall of opening hours.
    ========================================================================== */
 @media (max-width: 980px) {
-  .App { padding: 0 0 16px; }
+  .App { padding: 0 0 16px; display: block; }
 
-  .vv-shell { gap: 0; }
+  .vv-shell { gap: 0; margin: 0; max-width: none; }
 
   .vv-topbar { display: none; }
 
