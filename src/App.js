@@ -149,7 +149,7 @@ function BookingForm() {
   const [promoLoading, setPromoLoading] = useState(false);
   const [paymentMode, setPaymentMode] = useState("");
   
-  const navigate = useNavigate();
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const fetchAndApplyPromo = async () => {
     const raw = promoCode.trim().toUpperCase();
@@ -439,152 +439,187 @@ function BookingForm() {
     return result;
   };
 
+  const totalMinutes = selectedSlots.length * 30;
+  const durationLabel = [
+    Math.floor(totalMinutes / 60) ? `${Math.floor(totalMinutes / 60)} hr` : null,
+    totalMinutes % 60 ? `${totalMinutes % 60} min` : null,
+  ].filter(Boolean).join(" ");
+  const rateBreakdown = [
+    offPeakCount ? `${offPeakCount} × ₹${OFF_PEAK_RATE} off-peak` : null,
+    peakCount ? `${peakCount} × ₹${PEAK_RATE} peak` : null,
+  ].filter(Boolean).join("  ·  ");
+
   return (
     <div className="App">
-      <div className="booking-container">
-        {/* Left Side - Branding */}
-        <div className="left-panel">
-          <div className="brand-content">
-            <div className="logo-section">
-              <img 
-                src="/logo.jpg" 
-                alt="Vibe & Volley Logo" 
-                className="left-logo-image"
-              />
-              <p className="left-form-subtitle">by Tiny Tots Kindergarten</p>
-            </div>
+      <div className="vv-shell">
 
-            {/* <h1 className="main-title">TIMINGS</h1> */}
-            
-            <div className="timing-section">
-              <div className="day-group">
-                <h3 className="day-title">Monday - Sunday</h3>
-                <div className="time-info">
-                  <p className="time-slot-info">7am - 12am</p>
-                </div>
-              </div>
-              
-              <div className="day-group">
-                <h3 className="day-title">Premium Paddles Available @ ₹50 per hr</h3>
-                <div className="time-info">
-                  <p className="time-slot-info">Agassi</p>
-                  <p className="time-slot-info">Boomstik</p>
-                  <p className="time-slot-info">J2NF</p>
-                  <p className="time-slot-info">Perseus IV</p>
-                </div>
-              </div>
-            </div>
+        <header className="vv-topbar">
+          <p className="vv-topbar-meta">Chh. Sambhajinagar · Open every day, 7:00 AM – 12:00 AM</p>
+          <Link to="/manage" className="vv-nav-link">Manage a booking</Link>
+        </header>
 
-            <div className="pricing-section">
-              <h3 className="pricing-title">Court Rates</h3>
-              <div className="price-info">
-                <p className="price-item">Peak: ₹500 per hour including equipment</p>
-                <p className="price-item">Off-Peak (9am - 5pm): ₹300 per hour including equipment</p>
-              </div>
-            </div>
-            
-            <div className="contact-section">
-              <p className="contact-info">Admin: +91 9156156570</p>
-              <p className="contact-info">On Site Staff: +91 9096876337</p>    
-            </div>
-          </div>
-        </div>
+        <div className="booking-container">
 
-        {/* Right Side - Booking Form */}
-        <div className="right-panel">
-          <div className="form-header">
-            <p className="form-subtitle">powered by</p>
-            <img 
-              src="/FE_logo.png" 
-              alt="Vibe & Volley Logo" 
-              className="logo-image"
-            />
-
-          </div>
-
-          <form onSubmit={handleBookSlot} className="booking-form">
-            <div className="form-group">
-              <input
-                className="form-input"
-                placeholder="Your Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={submitting}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <div className="phone-input-wrapper">
-                <span className="phone-prefix">+91</span>
-                <input
-                  className="form-input"
-                  placeholder="9876543210"
-                  value={phone}
-                  maxLength={10}
-                  onChange={(e) => {
-                    let val = e.target.value.replace(/\D/g, "");
-                    if (val.length > 10) val = val.slice(0, 10);
-                    setPhone(val);
-                  }}
-                  disabled={submitting}
-                  required
+          {/* Venue details. Below 980px this panel moves BELOW the form and
+              collapses behind a single row, so the first thing on a phone
+              screen is the first form field rather than the opening hours. */}
+          <aside className={`left-panel ${infoOpen ? 'is-open' : ''}`}>
+            <div className="brand-content">
+              <div className="logo-section">
+                <img
+                  src="/vv-logo.png"
+                  alt="Vibe &amp; Volley — The Pickleball District"
+                  className="left-logo-image"
                 />
+                <p className="left-form-subtitle">by Tiny Tots Kindergarten</p>
               </div>
-            </div>
+              <div className="vv-rule" />
 
-            {/* Email input disabled — WhatsApp confirmation used instead.
-            <div className="form-group">
-              <input
-                className="form-input"
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={submitting}
-                required
-              />
-            </div>
-            */}
-
-            <div className="form-group">
-              <label className="form-label">Payment Mode (Paid after playing)</label>
-              <select
-                className="form-input"
-                value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                disabled={submitting}
-                required
+              <button
+                type="button"
+                className="vv-info-toggle"
+                onClick={() => setInfoOpen(!infoOpen)}
+                aria-expanded={infoOpen}
+                aria-controls="vv-venue-details"
               >
-                <option value="" disabled>Choose one</option>
-                <option value="Cash">Cash</option>
-                <option value="Upi">UPI</option>
-              </select>
-              {!paymentMode && (
-                <p style={{ fontSize: "0.85rem", marginTop: "4px", color: "orange" }}>
-                  Please choose a payment mode.
-                </p>
-              )}
+                <span>Hours, rates &amp; contact</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              <div className="vv-info-body" id="vv-venue-details">
+                <div className="vv-block">
+                  <p className="vv-block-label">THE COURT</p>
+                  <p className="vv-block-lead">One 8-layer acrylic court</p>
+                  <p className="vv-note">Cushioned, floodlit and open to the public every day.</p>
+                </div>
+
+                <div className="vv-block">
+                  <p className="vv-block-label">OPEN</p>
+                  <p className="vv-block-lead">Every day · 7:00 AM – 12:00 AM</p>
+                </div>
+
+                <div className="vv-block">
+                  <p className="vv-block-label">COURT RATES</p>
+                  <p className="vv-rate-row">
+                    <span>Off-peak · 9 AM – 5 PM</span>
+                    <span>₹300<span className="vv-per">/hr</span></span>
+                  </p>
+                  <p className="vv-rate-row">
+                    <span>Peak · all other hours</span>
+                    <span>₹500<span className="vv-per">/hr</span></span>
+                  </p>
+                  <p className="vv-note">Equipment included. Pay at the court.</p>
+                </div>
+
+                <div className="vv-block vv-contact">
+                  <p className="vv-block-label">NEED A HAND</p>
+                  <p className="contact-info">On-site staff · <a href="tel:+917774853573">+91 77748 53573</a></p>
+                  <p className="contact-info">Admin · <a href="tel:+919156156570">+91 91561 56570</a></p>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <section className="right-panel">
+            <div className="vv-mobile-brand">
+              <img src="/vv-logo.png" alt="Vibe &amp; Volley — The Pickleball District" />
+              <Link to="/manage" className="vv-nav-link">Manage</Link>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Date</label>
-                <input
-                  className="form-input date-input"
-                  type="date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  disabled={submitting}
-                  required
-                  min={new Date().toISOString().slice(0, 10)}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label className="form-label">Promo Code</label>
-                <div style={{ display: "flex", gap: "8px" }}>
+            <div className="form-header">
+              <h1 className="form-title">Book a court</h1>
+              <p className="form-subtitle">Takes about a minute. Your confirmation arrives on WhatsApp.</p>
+            </div>
+
+            <form onSubmit={handleBookSlot} className="booking-form">
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="vv-name">Your name</label>
                   <input
+                    id="vv-name"
+                    className="form-input"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={submitting}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="vv-phone">WhatsApp number</label>
+                  <div className="phone-input-wrapper">
+                    <span className="phone-prefix">+91</span>
+                    <input
+                      id="vv-phone"
+                      className="form-input"
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="9876543210"
+                      value={phone}
+                      maxLength={10}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, "");
+                        if (val.length > 10) val = val.slice(0, 10);
+                        setPhone(val);
+                      }}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label" htmlFor="vv-date">Date</label>
+                  <input
+                    id="vv-date"
+                    className="form-input date-input"
+                    type="date"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    disabled={submitting}
+                    required
+                    min={new Date().toISOString().slice(0, 10)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <span className="form-label">Pay at the court by</span>
+                  <div className="vv-pay-toggle">
+                    <button
+                      type="button"
+                      className={`vv-pay-btn ${paymentMode === 'Upi' ? 'active' : ''}`}
+                      onClick={() => setPaymentMode('Upi')}
+                      aria-pressed={paymentMode === 'Upi'}
+                      disabled={submitting}
+                    >
+                      UPI
+                    </button>
+                    <button
+                      type="button"
+                      className={`vv-pay-btn ${paymentMode === 'Cash' ? 'active' : ''}`}
+                      onClick={() => setPaymentMode('Cash')}
+                      aria-pressed={paymentMode === 'Cash'}
+                      disabled={submitting}
+                    >
+                      Cash
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="vv-promo">
+                  Promo code <span className="vv-optional">— optional</span>
+                </label>
+                <div className="vv-promo-row">
+                  <input
+                    id="vv-promo"
                     className="form-input"
                     placeholder="Enter code"
                     value={promoCode}
@@ -599,149 +634,140 @@ function BookingForm() {
                     type="button"
                     onClick={fetchAndApplyPromo}
                     disabled={!promoCode.trim() || submitting || promoLoading}
-                    className="time-block-btn"
-                    style={{ whiteSpace: "nowrap" }}
+                    className="vv-apply-btn"
                   >
-                    {promoLoading ? "..." : "Apply"}
+                    {promoLoading ? "…" : "Apply"}
                   </button>
                 </div>
                 {promoStatus && (
-                  <p style={{ fontSize: "0.85rem", marginTop: "4px", color: promoStatus.startsWith("✅") ? "green" : "orange" }}>
+                  <p className={`vv-field-note ${promoStatus.startsWith("✅") ? "is-ok" : "is-warn"}`}>
                     {promoStatus}
                   </p>
                 )}
-              </div>                 
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Time of Day</label>
-              <div className="time-blocks">
-                {TIME_BLOCKS.map((block) => {
-                  const disabled = !isFormReady || submitting;
-                  return (
-                    <button
-                      key={block}
-                      type="button"
-                      onClick={() => {
-                        if (!disabled) {
-                          setTimeBlock(block);
-                          setSelectedSlots([]);
-                        }
-                      }}
-                      className={`time-block-btn ${timeBlock === block ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
-                      disabled={disabled}
-                    >
-                      {block.charAt(0).toUpperCase() + block.slice(1)}
-                    </button>
-                  );
-                })}
               </div>
-            </div>
 
-            {timeBlock && TIME_SLOTS[timeBlock] && (
               <div className="form-group">
-                <div className="slot-header">
-                  <label className="form-label">
-                    <span role="img" aria-label="time slots">⏳</span> Select Time Slots
-                  </label>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setLoadingSlots(true);
-                      const booked = await fetchBookedSlots(bookingDate, timeBlock);
-                      setBookedSlots(booked);
-                      setLoadingSlots(false);
-                    }}
-                    className="refresh-btn"
-                  >
-                    🔄 Refresh
-                  </button>
+                <span className="form-label">Time of day</span>
+                <div className="time-blocks">
+                  {TIME_BLOCKS.map((block) => {
+                    const disabled = !isFormReady || submitting;
+                    return (
+                      <button
+                        key={block}
+                        type="button"
+                        onClick={() => {
+                          if (!disabled) {
+                            setTimeBlock(block);
+                            setSelectedSlots([]);
+                          }
+                        }}
+                        className={`time-block-btn ${timeBlock === block ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
+                        disabled={disabled}
+                      >
+                        {block.charAt(0).toUpperCase() + block.slice(1)}
+                      </button>
+                    );
+                  })}
                 </div>
-                
-                {loadingSlots ? (
-                  <p className="loading-text">Loading available slots...</p>
-                ) : (
-                  <div className="time-slots">
-                    {TIME_SLOTS[timeBlock].map((slot) => {
-                      const booked = isSlotBooked(slot);
-                      const selected = selectedSlots.includes(slot);
-                      
-                      return (
-                        <button
-                          key={slot}
-                          type="button"
-                          disabled={booked || submitting}
-                          onClick={() => !booked && toggleSlot(slot)}
-                          className={`time-slot ${booked ? 'booked' : ''} ${selected ? 'selected' : ''}`}
-                          title={booked ? "Already booked" : ""}
-                        >
-                          {slot} {booked && "❌"}
-                        </button>
-                      );
-                    })}
+                {!isFormReady && (
+                  <p className="vv-field-note">Add your name, number and date to see what is free.</p>
+                )}
+              </div>
+
+              {timeBlock && TIME_SLOTS[timeBlock] && (
+                <div className="form-group">
+                  <div className="slot-header">
+                    <span className="form-label">
+                      Pick your 30-minute slots{selectedSlots.length > 0 ? ` · ${selectedSlots.length} selected` : ''}
+                    </span>
+                    <button
+                      type="button"
+                      className="refresh-btn"
+                      onClick={async () => {
+                        setLoadingSlots(true);
+                        const booked = await fetchBookedSlots(bookingDate);
+                        setBookedSlots(booked);
+                        setLoadingSlots(false);
+                      }}
+                    >
+                      Refresh
+                    </button>
                   </div>
-                )}
-              </div>
-            )}
 
-            
-            {selectedSlots.length > 0 && (
-              <div className={`price-summary ${appliedPromo ? 'promo-applied' : ''}`}>
-                {appliedPromo ? (
-                  <p className="promo-per-player">
-                    🎉 Promo <strong>{appliedPromo.code}</strong> applied! {getPriceDisplay()} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
-                  </p>
-                ) : (
-                  <>
-                    <p>Total Price: ₹{totalPrice} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}</p>
-                    {peakCount > 0 && (
-                      <p style={{ fontSize: "0.85rem", color: "#666" }}>
-                        Peak: {peakCount} × ₹{PEAK_RATE}
-                      </p>
-                    )}
-                    {offPeakCount > 0 && (
-                      <p style={{ fontSize: "0.85rem", color: "#666" }}>
-                        Off-Peak: {offPeakCount} × ₹{OFF_PEAK_RATE}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
+                  {loadingSlots ? (
+                    <p className="loading-text">Loading available slots…</p>
+                  ) : (
+                    <div className="time-slots">
+                      {TIME_SLOTS[timeBlock].map((slot) => {
+                        const booked = isSlotBooked(slot);
+                        const selected = selectedSlots.includes(slot);
+                        const rate = OFF_PEAK_SLOTS.has(slot) ? OFF_PEAK_RATE : PEAK_RATE;
 
-            {message && (
-              <div className={`message ${message.includes('❌') ? 'error' : 'success'}`}>
-                {message}
-              </div>
-            )}
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={booked || submitting}
+                            onClick={() => !booked && toggleSlot(slot)}
+                            className={`time-slot ${booked ? 'booked' : ''} ${selected ? 'selected' : ''}`}
+                            title={slot}
+                            aria-pressed={selected}
+                          >
+                            <span className="slot-time">{slot.split(' - ')[0]}</span>
+                            <span className="slot-price">{booked ? 'Booked' : `₹${rate}`}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            <button
-              type="submit"
-              disabled={isBookButtonDisabled || submitting}
-              className={`submit-btn ${(isBookButtonDisabled || submitting) ? 'disabled' : ''}`}
-            >
-            
-              {submitting ? "Booking..." : "Confirm Booking"}
-            </button>
-          </form>
+              {selectedSlots.length > 0 && (
+                <div className={`price-summary ${appliedPromo ? 'promo-applied' : ''}`}>
+                  {appliedPromo ? (
+                    <p className="promo-per-player">
+                      Promo <strong>{appliedPromo.code}</strong> applied — {getPriceDisplay()} for {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''}
+                    </p>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="vv-summary-lead">
+                          {selectedSlots.length} slot{selectedSlots.length > 1 ? 's' : ''} · {durationLabel}
+                        </p>
+                        <p className="vv-summary-sub">{rateBreakdown}</p>
+                      </div>
+                      <span className="vv-summary-total">₹{totalPrice}</span>
+                    </>
+                  )}
+                </div>
+              )}
 
-          {/* 🆕 Moved below Confirm Booking */}
-          <button
-            type="button"
-            onClick={() => navigate('/manage')}
-            className="manage-bookings-btn"
-          >
-            Manage Your Booking/s
-          </button>
+              {message && (
+                <div className={`message ${message.includes('❌') ? 'error' : 'success'}`}>
+                  {message}
+                </div>
+              )}
 
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="admin-login-btn"
-          >
-            Admin Login
-          </button>
+              <button
+                type="submit"
+                disabled={isBookButtonDisabled || submitting}
+                className={`submit-btn ${(isBookButtonDisabled || submitting) ? 'disabled' : ''}`}
+              >
+                {submitting ? "Booking…" : "Confirm booking"}
+              </button>
+
+              {selectedSlots.length > 0 && !paymentMode && !submitting && (
+                <p className="vv-submit-hint">Choose how you will pay to confirm.</p>
+              )}
+            </form>
+          </section>
         </div>
+
+        <footer className="vv-footer">
+          <span>Vibe &amp; Volley · a Tiny Tots Kindergarten venue · Chh. Sambhajinagar</span>
+          <Link to="/login" className="vv-footer-link">Staff sign in</Link>
+        </footer>
       </div>
     </div>
   );

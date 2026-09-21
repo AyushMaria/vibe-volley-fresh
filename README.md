@@ -118,8 +118,8 @@ compiled into the public bundle, so no secret may ever use that prefix.
 ```
 vibe-volley-fresh/
 ├── public/
-│   ├── logo.jpg              # Venue logo (left panel)
-│   └── FE_logo.png           # "Powered by" logo
+│   ├── vv-logo.png           # Venue logo, transparent (header + left panel)
+│   └── logo.jpg              # Venue logo on white, for favicon + social cards
 ├── src/
 │   ├── App.js                # All components & routing (1200+ lines)
 │   ├── App.css               # All styles
