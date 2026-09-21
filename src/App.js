@@ -1,11 +1,34 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { supabase } from "./supabaseClient";
+// The browser no longer talks to Supabase. Every read and write goes through
+// /api/* handlers holding the secret key, so no database credential ships here.
 // import emailjs from '@emailjs/browser';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 
 const IS_UNDER_MAINTENANCE = false; // set to false when you want to reopen
 const MAINTENANCE_MESSAGE = "Vibe & Volley is temporarily unavailable as we are undergoing a facelift! Keep an eye on our Instagram handle for updates!";
+
+/**
+ * Thin wrapper over the /api handlers. Sends cookies so staff/admin sessions
+ * work, and surfaces the server's error text rather than a generic failure.
+ */
+async function api(path, { method = "GET", body, params } = {}) {
+  const qs = params ? `?${new URLSearchParams(params)}` : "";
+  const res = await fetch(`/api/${path}${qs}`, {
+    method,
+    credentials: "same-origin",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) { /* non-JSON error page */ }
+  if (!res.ok || data.ok === false) {
+    const err = new Error(data.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
 const TIME_SLOTS = {
@@ -75,17 +98,9 @@ const OFF_PEAK_SLOTS = new Set([
 const PEAK_RATE = 250;     // ₹ per 30-min slot
 const OFF_PEAK_RATE = 150; // ₹ per 30-min slot
 
-const BANNED_PHONES = [
-  "7499122175",
-  "8087940490",
-  // Add more banned phone numbers here
-];
-
-const BANNED_EMAILS = [
-  "banned@example.com",
-  "spam@example.com",
-  // Add more banned emails here
-];
+// The ban list now lives in api/_lib/slots.js and is enforced by /api/book.
+// Keeping it here published who was banned and let anyone edit it out of their
+// own copy of the bundle.
 
 
 
@@ -154,176 +169,104 @@ function BookingForm() {
     setAppliedPromo(null);
   
     try {
-      const { data, error } = await supabase
-        .from("promo_codes")
-        .select("*")
-        .eq("code", raw)
-        .maybeSingle();
-  
-      if (error) throw error;
-  
-      if (!data) {
-        setPromoStatus("❌ Invalid promo code.");
-        setPromoLoading(false);
+      // The server decides whether the code is valid and what it is worth.
+      // This result is for display only -- /api/book re-validates on its own.
+      const result = await api("promo", {
+        method: "POST",
+        body: { code: raw, slots: selectedSlots, phone: phone.trim() },
+      });
+
+      if (!result.valid) {
+        setPromoStatus(`❌ ${result.reason}`);
+        setAppliedPromo(null);
         return;
       }
-  
-      // Check min_slots requirement
-      if (data.min_slots && selectedSlots.length < data.min_slots) {
-        setPromoStatus(`❌ This promo requires at least ${data.min_slots} slot(s). You have selected ${selectedSlots.length}.`);
-        setPromoLoading(false);
-        return;
-      }
-  
-      // Check per-phone usage limit
-      if (data.max_uses_per_phone) {
-        const { count, error: usageError } = await supabase
-          .from("bookings")
-          .select("id", { count: "exact", head: true })
-          .eq("phone", phone.trim())
-          .eq("promo_code", raw);
-  
-        if (usageError) throw usageError;
-  
-        if (count >= data.max_uses_per_phone) {
-          setPromoStatus(`❌ You have already used this promo code the maximum number of times.`);
-          setPromoLoading(false);
-          return;
-        }
-      }
-  
-      setAppliedPromo(data);
-      setPromoStatus(`✅ Promo code ${data.code} applied!`);
+
+      setAppliedPromo({ code: result.code, total: result.total, discount: result.discount });
+      setPromoStatus(`✅ Promo code ${result.code} applied!`);
     } catch (err) {
-      console.error("Promo fetch error:", err);
+      console.error("Promo validation error:", err);
       setPromoStatus("❌ Failed to validate promo code. Please try again.");
     } finally {
       setPromoLoading(false);
     }
   };
   
-  const calculateFinalPrice = () => {
-    if (!appliedPromo) return totalPrice;
-    if (appliedPromo.discount_type === "percent") {
-      const discounted = totalPrice * (1 - appliedPromo.discount_value / 100);
-      return Math.round(discounted);
-    }
-    if (appliedPromo.discount_type === "flat") {
-      return Math.max(0, totalPrice - appliedPromo.discount_value);
-    }
-    return totalPrice;
-  };
+  // Display only. The figure that is actually charged comes back from /api/book.
+  const calculateFinalPrice = () =>
+    appliedPromo && typeof appliedPromo.total === "number"
+      ? appliedPromo.total
+      : totalPrice;
   
   const getPriceDisplay = () => {
     const final = calculateFinalPrice();
     if (!appliedPromo) return `₹${totalPrice}`;
-    if (appliedPromo.discount_value === 100 && appliedPromo.discount_type === "percent") {
-      return "₹0 (Free with promo)";
-    }
+    if (final === 0) return "₹0 (Free with promo)";
     return `₹${final} (was ₹${totalPrice})`;
   };
   
   
-  const isBanned =
-    BANNED_PHONES.includes(phone.trim()) ||
-    BANNED_EMAILS.includes(email.trim().toLowerCase());
-
   const isFormReady =
-    name.trim() !== "" && 
-    phone.trim().length === 10 && 
-    bookingDate !== ""&&
-    // email.trim() !== "" && // Add email validation
-    // email.includes("@") &&// Basic email validation
-    !isBanned;
+    name.trim() !== "" &&
+    phone.trim().length === 10 &&
+    bookingDate !== "";
 
   // Fetch booked slots function
-  const fetchBookedSlots = async (date, block) => {
-    if (!date || !block) return [];
-    
+  const fetchBookedSlots = async (date) => {
+    if (!date) return [];
     try {
-      /*console.log('Fetching slots for:', date, block);*/
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('slots')
-        .eq('booking_date', date)
-        .eq('time_block', block);
-
-      if (error) throw error;
-      /*console.log('Fetched data:', data);*/
-      
-      const booked = data.flatMap(booking => {
-        if (typeof booking.slots === 'string') {
-          try {
-            return JSON.parse(booking.slots);
-          } catch (e) {
-            console.error('Failed to parse slots JSON:', booking.slots);
-            return [];
-          }
-        }
-        return booking.slots || [];
-      });
-      
-      /*console.log('Processed booked slots:', booked);*/
-      return booked;
+      // Asks for the whole day rather than one time block. The old query
+      // filtered on time_block, so a booking straddling two blocks was
+      // invisible to the other one and could be double-booked.
+      const result = await api('availability', { params: { date } });
+      return result.booked || [];
     } catch (error) {
       console.error('Error fetching booked slots:', error);
       return [];
     }
   };
 
-  // Fetch booked slots when date/time changes
+  // Load availability, then keep it fresh by polling.
+  //
+  // The realtime subscription this replaces required the browser to hold a
+  // Supabase key and an open channel on the bookings table — which is what put
+  // the table in the realtime publication and exposed every booking as a live
+  // feed. Polling the availability endpoint is plenty for a booking form and
+  // returns nothing but slot strings.
   useEffect(() => {
     if (!bookingDate || !timeBlock) {
       setBookedSlots([]);
       return;
-    } 
+    }
 
-    const loadSlots = async () => {
-      setLoadingSlots(true);
-      const booked = await fetchBookedSlots(bookingDate, timeBlock);
-      console.log('About to set bookedSlots:', booked);
+    let cancelled = false;
+
+    const loadSlots = async (showSpinner) => {
+      if (showSpinner) setLoadingSlots(true);
+      const booked = await fetchBookedSlots(bookingDate);
+      if (cancelled) return;
       setBookedSlots(booked);
-      setLoadingSlots(false);
+      if (showSpinner) setLoadingSlots(false);
     };
 
-    loadSlots();
-  }, [bookingDate, timeBlock]);
-
-  // Set up realtime subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('booking-changes')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'bookings' 
-        },
-        async (payload) => {
-          console.log('Booking change detected:', payload);
-          if (bookingDate && timeBlock) {
-            const booked = await fetchBookedSlots(bookingDate, timeBlock);
-            setBookedSlots(booked);
-          }
-        }
-      )
-      .subscribe((status) => {
-      console.log('Realtime subscription status:', status); // ← Added status log
-      });
+    loadSlots(true);
+    const poll = setInterval(() => loadSlots(false), 20000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      clearInterval(poll);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingDate, timeBlock]);
 
+  // Changing the selection invalidates the server-computed discount, so the
+  // code has to be applied again against the new slots.
   useEffect(() => {
     if (!appliedPromo) return;
-    if (appliedPromo.min_slots && selectedSlots.length < appliedPromo.min_slots) {
-      setAppliedPromo(null);
-      setPromoStatus(`⚠️ Promo removed: you need at least ${appliedPromo.min_slots} slot(s).`);
-    }
-  }, [selectedSlots, appliedPromo]);  
+    setAppliedPromo(null);
+    setPromoStatus("⚠️ Selection changed — please apply your promo code again.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSlots]);
 
   const toggleSlot = (slot) => {
     if (selectedSlots.includes(slot)) {
@@ -365,11 +308,6 @@ function BookingForm() {
     e.preventDefault();
     if (isBookButtonDisabled || submitting) return;
 
-    if (isBanned) {
-      setMessage("❌ This phone number or email is not allowed to make bookings.");
-      return;
-    }
-
     // Cutoff rule: block next-day morning bookings after 11pm today
     if (isNextMorningCutoffPassed()) {
       setMessage("❌ Morning bookings for tomorrow are closed after 11:00 pm. Please choose a different time or date.");
@@ -380,7 +318,7 @@ function BookingForm() {
     setMessage("");
 
     // ✅ Fetch latest slots right before submitting
-    const latestBooked = await fetchBookedSlots(bookingDate, timeBlock);
+    const latestBooked = await fetchBookedSlots(bookingDate);
     const conflict = selectedSlots.some(slot => latestBooked.includes(slot));
 
     if (conflict) {
@@ -398,25 +336,23 @@ function BookingForm() {
     }
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            name,
-            phone,
-            email,
-            booking_date: bookingDate,
-            time_block: timeBlock,
-            slots: selectedSlots,
-            promo_code: appliedPromo?.code || null,
-            // NEW — derives final price from Supabase promo data
-            total_price: calculateFinalPrice(),
-            payment_mode: paymentMode,
-          }
-        ])
-        .select();
+      // The server prices the booking and re-checks the promo, the ban list,
+      // the 11pm cutoff and slot conflicts. Nothing about money is taken from
+      // this form — a crafted request used to be able to book at any price.
+      const result = await api('book', {
+        method: 'POST',
+        body: {
+          name,
+          phone: phone.trim(),
+          email,
+          bookingDate,
+          slots: selectedSlots,
+          promoCode: appliedPromo?.code || promoCode.trim() || null,
+          paymentMode,
+        },
+      });
 
-      if (error) throw error;
+      const confirmedTotal = `₹${result.booking.total_price}`;
 
       
       // EmailJS confirmation disabled — WhatsApp confirmation used instead.
@@ -451,7 +387,7 @@ function BookingForm() {
             bookingDate,
             timeBlock,
             slots: selectedSlots.join(', '),
-            totalPrice: getPriceDisplay(),
+            totalPrice: confirmedTotal,
             promoCode: promoCode || 'None',
           }),
         });
@@ -460,7 +396,7 @@ function BookingForm() {
       }
 
       // Different confirmation message based on promo
-      setMessage(`✅ Booking confirmed! WhatsApp confirmation sent. Total: ${getPriceDisplay()}`);
+      setMessage(`✅ Booking confirmed! WhatsApp confirmation sent. Total: ${confirmedTotal}`);
 
       // Reset form
       setName("");
@@ -476,7 +412,9 @@ function BookingForm() {
 
     } catch (error) {
       console.error('Error saving booking:', error);
-      setMessage("❌ Booking failed. Please try again.");
+      // Surface the server's reason (slot taken, cutoff passed, banned, promo
+      // rejected) instead of a blanket failure.
+      setMessage(`❌ ${error.message || 'Booking failed. Please try again.'}`);
     } finally {
       setSubmitting(false);
     }
@@ -771,13 +709,6 @@ function BookingForm() {
               </div>
             )}
 
-            {isBanned && (phone.length === 10 || email.includes("@")) && (
-              <div className="message error">
-                ❌ This phone number or email is not eligible to make bookings. 
-                Please contact us at +91 9156156570 for assistance.
-              </div>
-            )}
-
             {message && (
               <div className={`message ${message.includes('❌') ? 'error' : 'success'}`}>
                 {message}
@@ -824,67 +755,34 @@ function AdminBookings() {
   const [searchPhone, setSearchPhone] = useState("");
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        let query = supabase
-          .from('bookings')
-          .select('*')
-          .order('booking_date', { ascending: false })
-          .order('created_at', { ascending: false });
-
-        if (selectedDate) {
-          query = query.eq('booking_date', selectedDate);
-        }
-
-        if (searchPhone) {
-          query = query.ilike('phone', `%${searchPhone}%`);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        setBookings(data || []);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-        setBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate, searchPhone]);
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-  localStorage.removeItem('authenticated');
-  navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await api('session', { method: 'DELETE' });
+    } catch (e) {
+      /* clearing the cookie is best-effort */
+    }
+    navigate('/login');
   };
 
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('bookings')
-        .select('*')
-        .order('booking_date', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (selectedDate) {
-        query = query.eq('booking_date', selectedDate);
-      }
-
-      if (searchPhone) {
-        query = query.ilike('phone', `%${searchPhone}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setBookings(data || []);
+      const params = {};
+      if (selectedDate) params.date = selectedDate;
+      if (searchPhone) params.phone = searchPhone;
+      const result = await api('admin', { params });
+      setBookings(result.bookings || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setBookings([]);
+      // The session cookie is the gate now, so an expired one means re-login.
+      if (error.status === 401) navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -893,17 +791,13 @@ function AdminBookings() {
   const deleteBooking = async (id) => {
     if (window.confirm('Are you sure you want to delete this booking?')) {
       try {
-        const { error } = await supabase
-          .from('bookings')
-          .delete()
-          .eq('id', id);
-        
-        if (error) throw error;
+        await api('admin', { method: 'DELETE', params: { id } });
         fetchBookings(); // Refresh the list
         alert('Booking deleted successfully!');
       } catch (error) {
         console.error('Error deleting booking:', error);
-        alert('Failed to delete booking');
+        if (error.status === 401) { navigate('/login'); return; }
+        alert(error.message || 'Failed to delete booking');
       }
     }
   };
@@ -1019,23 +913,14 @@ function StaffBookings() {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        let query = supabase
-          .from('bookings')
-          .select('*')
-          .order('booking_date', { ascending: false })
-          .order('created_at', { ascending: false });
-
-        if (selectedDate) {
-          query = query.eq('booking_date', selectedDate);
-        }
-
-        if (searchPhone) {
-          query = query.ilike('phone', `%${searchPhone}%`);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-        setBookings(data || []);
+        // Scoped to a single day and gated on a staff session. This page used
+        // to be unauthenticated and returned every booking ever made.
+        const result = await api('staff', {
+          params: selectedDate ? { date: selectedDate } : {},
+        });
+        const rows = result.bookings || [];
+        const needle = searchPhone.trim();
+        setBookings(needle ? rows.filter((b) => String(b.phone || '').includes(needle)) : rows);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         setBookings([]);
@@ -1138,14 +1023,27 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  // The passcode is checked on the server and exchanged for an httpOnly
+  // cookie. It used to be compared against a literal in this file, which
+  // shipped to every visitor, and "success" was a localStorage flag anyone
+  // could set from the console.
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // Simple authentication check
-    if (email === 'admin@vibevolley' && password === 'vibe123') {
-      localStorage.setItem('authenticated', 'true');
-      navigate('/admin');
-    } else {
-      setError('Invalid id or password');
+    if (submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const result = await api('session', {
+        method: 'POST',
+        body: { passcode: password },
+      });
+      navigate(result.role === 'admin' ? '/admin' : '/staff');
+    } catch (err) {
+      setError(err.message || 'Incorrect passcode');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -1213,14 +1111,11 @@ function ManageBookings() {
       setLoading(true);
       setMessage('');
       
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('phone', phone)
-        .gte('booking_date', new Date().toISOString().slice(0, 10))
-        .order('booking_date', { ascending: true });
-
-      if (error) throw error;
+      const result = await api('my-bookings', {
+        method: 'POST',
+        body: { phone: phone.trim() },
+      });
+      const data = result.bookings || [];
 
       if (data && data.length > 0) {
         setUserBookings(data);
@@ -1244,19 +1139,19 @@ function ManageBookings() {
     }
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .delete()
-        .eq('id', bookingId);
-
-      if (error) throw error;
+      // The server checks the booking actually belongs to this phone number,
+      // so an id on its own is not enough to cancel someone else's slot.
+      await api('my-bookings', {
+        method: 'POST',
+        body: { phone: phone.trim(), cancelId: bookingId },
+      });
 
       setMessage('✅ Booking cancelled successfully!');
       // Refresh the bookings list
       setUserBookings(userBookings.filter(b => b.id !== bookingId));
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      setMessage('❌ Failed to cancel booking. Please try again.');
+      setMessage(`❌ ${error.message || 'Failed to cancel booking. Please try again.'}`);
     }
   };
 
@@ -1363,13 +1258,30 @@ function ManageBookings() {
 
 
 // Protected Route Component
-function ProtectedRoute({ children }) {
-  const isAuthenticated = localStorage.getItem('authenticated') === 'true';
-  
-  if (!isAuthenticated) {
+function ProtectedRoute({ children, allow = ['admin'] }) {
+  const [state, setState] = useState('checking');
+
+  // Asks the server who this session belongs to. The previous check read a
+  // localStorage flag, which the visitor controls.
+  useEffect(() => {
+    let cancelled = false;
+    api('session')
+      .then((r) => {
+        if (!cancelled) setState(r.role && allow.includes(r.role) ? 'ok' : 'denied');
+      })
+      .catch(() => {
+        if (!cancelled) setState('denied');
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (state === 'checking') {
+    return <div className="admin-container"><p>Checking access…</p></div>;
+  }
+  if (state === 'denied') {
     return <Navigate to="/login" replace />;
   }
-  
   return children;
 }
 
@@ -1393,9 +1305,16 @@ export default function App() {
           }
         />
 
-        {/* Admin / staff / login always accessible */}
+        {/* Login is public; /admin and /staff require a server session */}
         <Route path="/login" element={<Login />} />
-        <Route path="/staff" element={<StaffBookings />} />
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute allow={['staff', 'admin']}>
+              <StaffBookings />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/admin"
           element={

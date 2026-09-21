@@ -24,17 +24,16 @@ The official **court booking web app** for Vibe & Volley, a pickleball venue in 
 - Customers look up their upcoming bookings by phone number
 - Self-service cancellation of any upcoming booking
 
-### Admin Dashboard (`/admin`) — Protected
+### Admin Dashboard (`/admin`) — Admin session required
 - View all bookings with full details (name, phone, email, date, slots, price, promo code)
 - Filter by date or search by phone number
 - Delete any booking
 - Live revenue summary (total bookings · total revenue ₹)
-- Protected by a `localStorage`-based login session
 
-### Staff View (`/staff`)
-- Simplified read-only bookings dashboard for on-site staff
+### Staff View (`/staff`) — Staff or admin session required
+- Read-only bookings list for on-site staff, scoped to one day at a time
 - Shows date, slots, name, phone, and total price
-- No delete capability or sensitive columns exposed
+- No delete capability
 
 ---
 
@@ -45,8 +44,46 @@ The official **court booking web app** for Vibe & Volley, a pickleball venue in 
 | `/` | `BookingForm` | Public (or Maintenance page) |
 | `/manage` | `ManageBookings` | Public (or Maintenance page) |
 | `/login` | `Login` | Public |
-| `/admin` | `AdminBookings` | Protected (login required) |
-| `/staff` | `StaffBookings` | Public (internal use) |
+| `/admin` | `AdminBookings` | Admin passcode |
+| `/staff` | `StaffBookings` | Staff or admin passcode |
+
+## Architecture
+
+The browser holds **no database credential**. Every read and write goes through
+serverless handlers in `api/`, which hold the Supabase secret key:
+
+| Endpoint | Purpose | Access |
+|---|---|---|
+| `GET /api/availability?date=` | free slots for a date (slot strings only) | public |
+| `POST /api/promo` | validate a promo code, preview the discount | public |
+| `POST /api/book` | create a booking — the server prices it | public |
+| `POST /api/my-bookings` | list or cancel by phone number | public |
+| `POST /api/session` | exchange a passcode for an httpOnly cookie | public |
+| `GET /api/staff?date=` | one day's bookings | staff / admin |
+| `GET,DELETE /api/admin` | full list, revenue, delete | admin |
+
+Pricing, promo rules, the ban list and the 11 pm cutoff live in `api/_lib/` and
+are authoritative. The browser's copies are for display only.
+
+### Required environment variables
+
+Set these in Vercel (and in `.env` for local work — it is gitignored):
+
+```
+SUPABASE_URL=                     # project URL
+SUPABASE_SERVICE_ROLE_KEY=        # sb_secret_... server only, never REACT_APP_*
+SESSION_SECRET=                   # long random string; signs session cookies
+ADMIN_PASSCODE=                   # grants /admin and /staff
+STAFF_PASSCODE=                   # grants /staff only
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_WHATSAPP_FROM=
+TWILIO_TO_OWNER=
+TWILIO_WHATSAPP_TEMPLATE_SID=
+```
+
+`REACT_APP_SUPABASE_*` is no longer used. Anything prefixed `REACT_APP_` is
+compiled into the public bundle, so no secret may ever use that prefix.
 
 ---
 
