@@ -31,6 +31,22 @@ async function api(path, { method = "GET", body, params } = {}) {
 }
 
 const TIME_BLOCKS = ["morning", "afternoon", "evening"];
+
+/**
+ * Chip label for a slot. "7:00 AM - 7:30 AM" reads as "7:00 – 7:30 AM": the
+ * shared meridiem is stated once so the range still fits a chip. A slot that
+ * crosses noon or midnight keeps both ("11:30 AM – 12:00 PM").
+ *
+ * Showing only the start time was ambiguous — "7:00 AM" beside a price reads
+ * as a rate for 7 AM onwards rather than for a single 30-minute slot.
+ */
+function slotLabel(slot) {
+  const [start, end] = String(slot).split(" - ");
+  if (!end) return slot;
+  return start.slice(-2) === end.slice(-2)
+    ? `${start.slice(0, -3)} \u2013 ${end}`
+    : `${start} \u2013 ${end}`;
+}
 const TIME_SLOTS = {
   morning: [
     "7:00 AM - 7:30 AM",
@@ -713,7 +729,7 @@ function BookingForm() {
                             title={slot}
                             aria-pressed={selected}
                           >
-                            <span className="slot-time">{slot.split(' - ')[0]}</span>
+                            <span className="slot-time">{slotLabel(slot)}</span>
                             <span className="slot-price">{booked ? 'Booked' : `₹${rate}`}</span>
                           </button>
                         );

@@ -374,7 +374,7 @@ select.form-input { cursor: pointer; }
 
 .time-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
   gap: 8px;
 }
 
@@ -395,7 +395,7 @@ select.form-input { cursor: pointer; }
   transition: all 0.12s ease;
 }
 
-.slot-time { font-size: 0.82rem; font-weight: 600; }
+.slot-time { font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
 .slot-price { font-size: 0.66rem; font-weight: 500; color: var(--vv-muted); }
 
 .time-slot:hover:not(.booked):not(:disabled) { border-color: var(--vv-green-deep); }
@@ -584,7 +584,9 @@ select.form-input { cursor: pointer; }
 
 @media (max-width: 560px) {
   .form-row { flex-direction: column; gap: 15px; }
-  .time-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* Two across, not three: a slot crossing noon or midnight reads
+     "11:30 AM – 12:00 PM", which will not fit a third of a phone. */
+  .time-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .form-title { font-size: 1.4rem; }
   .vv-summary-total { font-size: 1.3rem; }
   .vv-apply-btn { width: 88px; }
