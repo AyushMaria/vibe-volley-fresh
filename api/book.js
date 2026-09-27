@@ -4,6 +4,12 @@ const { supabase, isConfigured } = require('./_lib/supabase');
 const S = require('./_lib/slots');
 const { evaluatePromo } = require('./_lib/promo-rules');
 
+// Canonical spellings, keyed by lower case. The booking form sent "Upi" for
+// years (the value of the original dropdown) and Ace stores whatever case the
+// model produced, so the column holds Upi, UPI, cash and CASH side by side.
+// An exact-match whitelist rejected every UPI booking from the website.
+const PAYMENT_MODES = { cash: 'Cash', upi: 'UPI' };
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -17,7 +23,7 @@ module.exports = async (req, res) => {
   const phone = String(b.phone || '').trim();
   const email = String(b.email || '').trim();
   const bookingDate = String(b.bookingDate || '').trim();
-  const paymentMode = String(b.paymentMode || '').trim();
+  const paymentMode = PAYMENT_MODES[String(b.paymentMode || '').trim().toLowerCase()];
   const slots = S.sortSlots(Array.isArray(b.slots) ? b.slots : []);
 
   if (!name) return res.status(400).json({ ok: false, error: 'Name is required' });
@@ -30,7 +36,7 @@ module.exports = async (req, res) => {
   if (!S.areValidSlots(slots)) {
     return res.status(400).json({ ok: false, error: 'Invalid or duplicate slots' });
   }
-  if (!['Cash', 'UPI'].includes(paymentMode)) {
+  if (!paymentMode) {
     return res.status(400).json({ ok: false, error: 'Payment mode must be Cash or UPI' });
   }
 

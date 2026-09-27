@@ -609,9 +609,9 @@ function BookingForm() {
                   <div className="vv-pay-toggle">
                     <button
                       type="button"
-                      className={`vv-pay-btn ${paymentMode === 'Upi' ? 'active' : ''}`}
-                      onClick={() => setPaymentMode('Upi')}
-                      aria-pressed={paymentMode === 'Upi'}
+                      className={`vv-pay-btn ${paymentMode === 'UPI' ? 'active' : ''}`}
+                      onClick={() => setPaymentMode('UPI')}
+                      aria-pressed={paymentMode === 'UPI'}
                       disabled={submitting}
                     >
                       UPI
