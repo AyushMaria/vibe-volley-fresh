@@ -905,39 +905,48 @@ select.form-input { cursor: pointer; }
 }
 
 .manage-header {
+  max-width: 600px;
+  margin: 0 auto 32px;
   text-align: center;
-  color: white;
-  margin-bottom: 40px;
-  position: relative;
+  color: #FFFFFF;
 }
 
 .manage-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+  font-family: var(--vv-display);
+  font-size: 2.3rem;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 
 .manage-header p {
   font-size: 1.1rem;
   opacity: 0.9;
+  margin: 0;
+  text-wrap: balance;
 }
 
 .back-btn {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
-  padding: 10px 20px;
-  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0 auto 28px 0;
+  padding: 8px 16px;
+  background: transparent;
+  color: #E7EAE4;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .back-btn:hover {
-  background: white;
-  color: var(--vv-green-deep);
+  border-color: var(--vv-green);
+  color: var(--vv-green);
 }
 
 /* Search Section */
@@ -999,9 +1008,9 @@ select.form-input { cursor: pointer; }
 }
 
 .search-message.success {
-  background: #e6ffe6;
-  color: #4f8a10;
-  border: 2px solid #b3ffb3;
+  background: #E8F5EC;
+  color: #14572A;
+  border: 1px solid #BFE3CB;
 }
 
 .search-message.error {
@@ -1106,14 +1115,6 @@ select.form-input { cursor: pointer; }
     font-size: 1.8rem;
   }
   
-  .back-btn {
-    position: static;
-    margin-bottom: 20px;
-    display: block;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
-  }
   
   .search-form {
     flex-direction: column;

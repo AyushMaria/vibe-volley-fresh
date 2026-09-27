@@ -1198,8 +1198,6 @@ function ManageBookings() {
     <div className="App">
       <div className="manage-bookings-container">
         <div className="manage-header">
-          <h1>Manage Your Bookings</h1>
-          <p>Enter your phone number to view and manage your upcoming bookings</p>
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -1207,6 +1205,8 @@ function ManageBookings() {
           >
             ← Back to Booking Form
           </button>
+          <h1>Manage Your Bookings</h1>
+          <p>Enter your phone number to view and manage your upcoming bookings</p>
         </div>
 
         <div className="search-section">
@@ -1233,7 +1233,7 @@ function ManageBookings() {
           </form>
 
           {message && (
-            <div className={`search-message ${message.includes('❌') ? 'error' : userBookings.length === 0 ? 'warning' : 'success'}`}>
+            <div className={`search-message ${message.includes('❌') ? 'error' : message.includes('✅') ? 'success' : userBookings.length === 0 ? 'warning' : 'success'}`}>
               {message}
             </div>
           )}

@@ -7,6 +7,10 @@ html {
 
 *, *::before, *::after { box-sizing: inherit; }
 
+/* Browsers give form controls their own system font unless told otherwise,
+   which is why buttons and inputs rendered in Arial next to Poppins. */
+button, input, select, textarea { font-family: inherit; }
+
 body {
   margin: 0;
   font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
